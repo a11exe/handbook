@@ -1,5 +1,7 @@
 # Install Java
 
+[#setup]
+
 The easiest JDK to install is [Eclipse's Adoptium project](https://adoptium.net/) (formerly AdoptOpenJDK).
 
 Validate `JAVA_HOME` on Windows
