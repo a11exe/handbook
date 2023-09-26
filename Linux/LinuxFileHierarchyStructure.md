@@ -1,4 +1,6 @@
-# Linux file hierarchy structure
+# Linux file hierarchy structure 
+
+[#linux]
 
 In Linux/Unix operating system everything is a file even directories are files, files are files,
 and devices like mouse, keyboard, printer, etc are also files.
