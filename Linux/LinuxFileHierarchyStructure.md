@@ -5,6 +5,9 @@
 In Linux/Unix operating system everything is a file even directories are files, files are files,
 and devices like mouse, keyboard, printer, etc are also files.
 Here we are going to see the Directory Structure in Linux.
+On Windows the capitalization is not important, but Linux and Mac are both case sensitive.
+In filesystems, we use the double dot (..) to access the parent directory, 
+whereas the single dot (.) represents the current directory.
 
 ![linux file hierarchy](linux-dir.jpg "linux file hierarchy")
 
