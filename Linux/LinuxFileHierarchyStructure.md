@@ -133,35 +133,36 @@ Generally, automatically generated and populated by the system, on the fly.**
 
 # System Configuration Files:
 
-| Configuration Files | Description |
-|---    |---|
-| /etc/bashrc | It is used by bash shell that contains system defaults and aliases. |
-| /etc/crontab | A shell script to run specified commands on a predefined time interval. |
-| /etc/exports | It contains information on the file system available on the network. |
-| /etc/fstab | Information of the Disk Drive and their mount point. |
-| /etc/group | It is a text file to define Information of Security Group. |
-| /etc/grub.conf | It is the grub bootloader configuration file. |
-| /etc/init.d | Service startup Script. |
-| /etc/lilo.conf | It contains lilo bootloader configuration file. |
-| /etc/hosts | Information of IP and corresponding hostnames |
+| Configuration Files | Description                                                                  |
+|---    |------------------------------------------------------------------------------|
+| /etc/bashrc | It is used by bash shell that contains system defaults and aliases.          |
+| /etc/crontab | A shell script to run specified commands on a predefined time interval.      |
+| /etc/exports | It contains information on the file system available on the network.         |
+| /etc/fstab | Information of the Disk Drive and their mount point.                         |
+| /etc/group | It is a text file to define Information of Security Group.                   |
+| /etc/grub.conf | It is the grub bootloader configuration file.                                |
+| /etc/init.d | Service startup Script.                                                      |
+| /etc/lilo.conf | It contains lilo bootloader configuration file.                              |
+| /etc/hosts | Information of IP and corresponding hostnames                                |
 | /etc/hosts.allow | It contains a list of hosts allowed accessing services on the local machine. |
-| /etc/host.deny | List of hosts denied accessing services on the local machine. |
-| /etc/inittab | INIT process and their interaction at the various run levels. |
-| /etc/issue | Allows editing the pre-login message. |
-| /etc/modules.conf | It contains the configuration files for the system modules. |
-| /etc/motd | It contains the message of the day. |
-| /etc/mtab | Currently mounted blocks information. |
-| /etc/passwd | It contains username, password of the system, users in a shadow file. |
-| /etc/printcap | It contains printer Information. |
-| /etc/profile | Bash shell defaults. |
-| /etc/profile.d | It contains other scripts like application scripts, executed after login. |
-| /etc/rc.d | It avoids script duplication. |
-| /etc/rc.d/init.d | Run Level Initialisation Script. |
-| /etc/resolv.conf | DNS being used by System. |
-| /etc/security | It contains the name of terminals where root login is possible. |
-| /etc/skel | Script that initiates new user home directory. |
-| /etc/termcap | An ASCII file that defines the behavior of different types of the terminal. |
-| /etc/X11 | Directory tree contains all the conf files for the X-window System. |
+| /etc/host.deny | List of hosts denied accessing services on the local machine.                |
+| /etc/inittab | INIT process and their interaction at the various run levels.                |
+| /etc/issue | Allows editing the pre-login message.                                        |
+| /etc/modules.conf | It contains the configuration files for the system modules.                  |
+| /etc/motd | It contains the message of the day.                                          |
+| /etc/mtab | Currently mounted blocks information.                                        |
+| /etc/passwd | It contains username, password of the system, users in a shadow file.        |
+| /etc/shadow | users passwords hashes.                                                      |
+| /etc/printcap | It contains printer Information.                                             |
+| /etc/profile | Bash shell defaults.                                                         |
+| /etc/profile.d | It contains other scripts like application scripts, executed after login.    |
+| /etc/rc.d | It avoids script duplication.                                                |
+| /etc/rc.d/init.d | Run Level Initialisation Script.                                             |
+| /etc/resolv.conf | DNS being used by System.                                                    |
+| /etc/security | It contains the name of terminals where root login is possible.              |
+| /etc/skel | Script that initiates new user home directory.                               |
+| /etc/termcap | An ASCII file that defines the behavior of different types of the terminal.  |
+| /etc/X11 | Directory tree contains all the conf files for the X-window System.          |
 
 | Virtual and Pseudo Process Related Files | Description |
 |---    |---|
