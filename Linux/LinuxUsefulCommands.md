@@ -11,6 +11,7 @@ format linux command: `command keys arguments`
 * [Permissions in Linux](#permissions-in-linux)
 * [System info](#system-info)
 * [Bash scripts](#bash-scripts)
+* [Cron](#cron)
 
 ## Data streams and pipes
 
@@ -27,6 +28,10 @@ $ ls -laH 1> myfile.txt // redirect stdout to file using stream number
 $ ls -la ddd 2> error.txt // redirect stderr to file
 $ $ psql tecmintdb < tecmintdb.sql
 ```
+
+* **Pipe** is used to pass output to another program or utility.
+* **Redirect** is used to pass output to either a file or stream.
+
 
 ### Linux piping commands
 The pipe is used to combine two or more commands
@@ -132,16 +137,17 @@ $ tail -f logfile // update in real time (follow)
 and displays all lines that contain that pattern
 
 ```
-$ grep -i "UNix" geekfile.txt // Case insensitive search
-$ grep -c "unix" geekfile.txt // Displaying the count of number of matches
+$ grep -i "UNix" geekfile.txt # Case insensitive search
+$ grep -c "unix" geekfile.txt # Displaying the count of number of matches
 $ grep -l "unix" * // Display the file names that matches the pattern
-$ grep -w "unix" geekfile.txt // grep only whole word
-$ grep -n "unix" geekfile.txt // show line number while displaying output
-$ grep -v "unix" geekfile.txt // invert pattern match (not matching)
-$ grep "^unix" geekfile.txt // lines starts with string
-$ grep "os$" geekfile.txt // lines that end with a string
-$ grep –e "Agarwal" –e "Aggarwal" –e "Agrawal" geekfile.txt // multiple
-$ grep -iR geeks /home/geeks // search recursively in directory
+$ grep -w "unix" geekfile.txt # grep only whole word
+$ grep -n "unix" geekfile.txt # show line number while displaying output
+$ grep -v "unix" geekfile.txt # invert pattern match (not matching)
+$ grep "^unix" geekfile.txt # lines starts with string
+$ grep "os$" geekfile.txt # lines that end with a string
+$ grep –e "Agarwal" –e "Aggarwal" –e "Agrawal" geekfile.txt # multiple
+$ grep -iR geeks /home/geeks # search recursively in directory
+$ grep -r "^root:x:" /etc/ 2> /dev/null | grep bash # find file contains line starts with root in /etc/ recursively
 ```
 
 `wc` stands for word count
@@ -493,8 +499,67 @@ $ kill 1234 4321 2342 // kill multiple processes
 
 SIGTERM, it sends a termination signal to the process which helps in exit gracefully. Whereas SIGKILL sends a kill signal to the process, which terminate the processes forcefully and immediately.
 
+`whereis` command is used to find the location of source/binary file of a command and manuals sections for a specified file in Linux system.
+
+```
+$ whereis java
+```
+
+`type` command is used to describe how its argument would be translated if used as commands. It is also used to find out whether it is built-in or external binary file.
+
+```
+$ type -a pwd
+$ type ls
+```
 
 ## BASH scripts
+
+### Shell
+
+```
+$ echo $SHELL // determine shell
+```
+
+For example file test.sh First line determine shell where to execute script
+```
+#!/bin/bash
+echo Shell
+```
+
+### PATH
+The PATH variable is an environment variable containing an ordered list of paths that Linux will search for executables when running a command. Using these paths means that we don’t have to specify an absolute path when running a command.
+Linux traverses the colon-separated paths in order until finding an executable. Thus, Linux uses the first path if two paths contain the desired executable.
+
+```
+echo $PATH
+```
+
+Adding new path
+```
+$ export PATH=/some/new/path:$PATH # prepend
+$ export PATH=$PATH:/some/new/path # append
+```
+
+To persist our changes for the current user, we add our export command to the end of ~/.profile. If the ~/.profile file doesn’t exist, we should create it using the touch command:
+We can add a new path for all users on a Unix-like system by creating a file ending in .sh in /etc/profile.d/ and adding our export command to this file.
+
+For example, we can create a new script file, /etc/profile.d/example.sh, and add the following line to append /some/new/path to the global PATH:
+
+```
+export PATH=$PATH:/some/new/path
+```
+
+### Logical Operators
+* Logical AND (&&): This is a binary operator, which returns true if both the operands are true otherwise returns false.
+* Logical OR (||): This is a binary operator, which returns true is either of the operand is true or both the operands are true and return false if none of then is false.
+* Not Equal to (!): This is a unary operator which returns true if the operand is false and returns false if the operand is true.
+* (;) execute each command no matter previous command result
+
+```
+ls -la && echo "OK"
+ls -la notExist || echo "not exist"
+ls -la notExist ; echo "all commands no matter result"
+```
 
 ### for loop 
 
@@ -504,3 +569,51 @@ $ for i in /etc/*.conf; do cp "$i" /backup; done
 $ for var in one two three; do echo "$var"; done
 $ for s in $(cat isro-spacecrafts.txt); do echo "Spacecraft is $s"; done
 `````
+
+## Cron
+You can only run cron jobs once per minute. Every 30 seconds is not possible.
+
+The `crontab` is a list of commands that you want to run on a regular schedule, 
+and also the name of the command used to manage that list. Crontab stands for “cron table, ” 
+because it uses the job scheduler cron to execute tasks; cron itself is named after “chronos, ” 
+the Greek word for time.cron is the system process which will automatically perform tasks for you according to a set 
+schedule. The schedule is called the crontab, which is also the name of the program used to edit that schedule. 
+Linux Crontab Format
+
+`/etc/crontab` is the system wide crontab.
+
+The format of /etc/crontab is like this:
+```
+# m h dom mon dow user      command
+*   *  *   *   *  someuser  echo 'foo'
+```
+while crontab -e is per user, it's worth mentioning with no -u argument the crontab command goes to the current users crontab. You can do crontab -e -u <username> to edit a specific users crontab.
+
+Notice in a per user crontab there is no 'user' field.
+
+```
+# m h  dom mon dow  command
+*   *   *   *   *   echo 'foo'
+```
+
+### Crontab Fields and Allowed Ranges (Linux Crontab Syntax)
+
+| Field        | Description | Allowed Value  |
+|---------------|---|--------------|
+| MIN | Minute field  | 0 to 59 |
+| HOUR | Hour field  | 0 to 23 |
+| DOM | Day of Month  | 1-31 |
+| MON | Month field  | 1-12 |
+| DOW | Day Of Week  | 0-6 |
+| CMD | Command  | Any command to be executed. |
+
+```
+* * * * * /home/maverick/full-backup # every minute
+* 02 * * * /home/maverick/full-backup # every minute from 02:00 to 02:59
+30 08 10 06 * /home/maverick/full-backup # 30th Minute, 08 AM, 10th Day, 6th Month (June) * – Every day of the week
+```
+
+create or edit user crontab
+```
+$ crontab -e
+```
