@@ -184,6 +184,25 @@ $ cat file1 >> file2 // append content
 $ tac file_name // display content in reverse order
 ```
 
+`less` command is excellent for viewing the contents of a text file in the terminal without cluttering your screen.
+
+```
+$ ls -la | less
+```
+You can perform a backward search with `?pattern` instead of `/pattern`
+* You can move to the next matched pattern by pressing the `n` key.
+* You can move back to the previous match by pressing the `N` (shift+n) key.
+  To run a case-insensitive search, you can enter the following in less view:
+```
+-I
+```
+If you want, you can start less with case insensitive mode from the beginning:
+
+```
+less -I filename
+```
+You can only show the matching lines in less by performing the search with `&pattern` instead of `/pattern`
+
 `diff` stands for difference. This command is used to display the differences in the files by comparing the files line by line
 
 Special symbols are:
@@ -435,6 +454,21 @@ $ sudo usermod -U test_user // to unlock
 $ sudo usermod -u 1234 test_user // to change user id
 ```
 ## System info
+
+`systemctl` is used to examine and control the state of “systemd” system and service manager. 
+systemd is a system and service manager for Unix-like operating systems (most of the distributions, not all). 
+As the system boots up, the first process created, i.e. init process with PID = 1, is systemd system that initiates the userspace services.
+
+```
+$ systemctl start sshd # start SSH service
+$ systemctl stop sshd # stop service
+$ systemctl enable firewalld
+$ systemctl disable firewalld
+$ systemctl status firewalld
+$ systemctl restart sshd
+$ systemctl reload httpd
+$ systemctl stop --force httpd.service
+```
 
 `ps` - for viewing information related with the processes on a system which stands as abbreviation for “Process Status”.
 
