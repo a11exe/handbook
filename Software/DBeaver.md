@@ -1,5 +1,10 @@
 # DBeaver
 
+## Change active db
+```
+set search_path to 'new_db_name';
+```
+
 ## Commit mode
 DBeaver supports two modes for committing changes to the database:
 * Auto-commit transfers all changes that you make immediately to the database.
