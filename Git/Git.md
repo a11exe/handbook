@@ -1,6 +1,7 @@
 # Git
 
 [Rename a Local and Remote Git Branch](#rename-a-local-and-remote-git-branch)
+[Combine multiple commits into one](#combine-multiple-commits-into-one)
 
 ### Rename a Local and Remote Git Branch
 
@@ -27,3 +28,20 @@ perform the next steps to rename the remote branch.
 `git push origin --delete <old_name>`
 
 That’s it. You have successfully renamed the local and remote Git branch.
+
+### Combine multiple commits into one
+
+Suppose that you want to merge the last 3 commits into a single commit. 
+To do that, you should run git rebase in interactive mode (-i) providing the last commit to set the ones that come after it. 
+Here, HEAD is the alias of the very last commit.
+```
+git rebase -i HEAD~3
+```
+
+After the first step, the editor window will show up offering you to input the command for each commit. 
+All you need to do is `replacing pick with squash`, starting from the second line. Then, save the file.
+
+One more editor window will show up to change the resulting commit message. 
+Here, you can find all your commit messages and change them according to your exact needs.
+
+If you have already pushed your commits, then you should force push them using the git push command with — force flag
