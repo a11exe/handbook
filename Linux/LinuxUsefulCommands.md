@@ -381,6 +381,7 @@ You can also use octal notations like this.
 
 ```
 $ chmod 777 [file_name] // chmod ugo+rwx [file_name]
+$ chmod 666 [file_name] // read write
 ```
 
 `chown` command is used to change the file Owner or group
@@ -390,6 +391,12 @@ chown master file1.txt
 chown :group1 file1.txt
 chown master:group1 file1.txt
 ```
+
+**User IDs Range Convention**
+The Linux Standard Base Core Specification defines three different ranges for user IDs, 
+the value from 0 to 99, 100 to 999, and 1000 and above. 
+Out of these three ranges, the first two ranges are reserved for system users. 
+Therefore, for all the regular users we create, it takes up value in the third range, starting from 1000.
 
 `id` - id command in Linux is used to find out user and group names and numeric ID’s (UID or group ID) of the current user or any other user in the server. This command is useful to find out the following information as listed below:
 
@@ -448,6 +455,7 @@ $ sudo usermod -c "This is test user" test_user // to add comment
 $ sudo usermod -d /home/manav test_user // to change home directory of a user
 $ sudo usermod -e 2020-05-29 test_user // to change expire date
 $ sudo usermod -g manav test_user // to change usergroup
+$ sudo usermod -a -G sudo user // add user to group 
 $ sudo usermod -l test_account test_user // to change login name
 $ sudo usermod -L test_user // to lock user
 $ sudo usermod -U test_user // to unlock
