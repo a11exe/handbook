@@ -96,7 +96,10 @@ verifying
 combine
 
 ```
-1 * mockService.subscribe({it.name == 'Jimbo'}, "computer studies")
+1 * mockService.subscribe({
+        it.name == 'Jimbo'
+        it.status == 'ok'
+    }, "computer studies")
 1 * mockService.subscribe({it.name == 'Jimbo' >> it.email == 'jb@test.com'}, !null)
 1 * mockService.subscribe(_, !null)
 ```
