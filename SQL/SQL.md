@@ -1,5 +1,6 @@
 # SQL
 
+* [Data Type Formatting](#data-type-formatting)
 * [Copy a Table](#copy-a-table)
 * [Transactions](#transactions)
 * [Block structure](#block-structure)
@@ -7,6 +8,13 @@
 * [For Loops](#for-loops)
 * [With clause](#with-clause)
 * [Complex example](#complex-example)
+* [Generate dates](#generate-dates)
+* [Start and end of day](#start-and-end-of-day)
+
+### Data Type Formatting
+```
+SELECT coalesce(type, 'null) || coalesce(to_char(oper_date, 'YYYY-mm-dd HH:MM:SS'), 'null') || md5(hash)::uuid || sum::text) from operations;
+```
 
 ### Copy a Table
 Creating new tables that would either have the same data or data of the same table with certain operations performed on them.
@@ -373,4 +381,19 @@ begin
     end loop;
 end;
 $$;
+```
+
+## Generate dates
+```
+SELECT date_trunc('day', dd):: date
+FROM generate_series
+        ( '2007-02-01'::timestamp 
+        , '2008-04-01'::timestamp
+        , '1 day'::interval) dd;
+```
+
+## Start and end of day
+```
+select date_trunc('day', val) as start_day,
+       (date_trunc('day', val) + interval '1 day' - interval '1 second') as end_day
 ```
