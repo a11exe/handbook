@@ -7,10 +7,13 @@ format linux command: `command keys arguments`
 * [Data streams and pipes](#data-streams-and-pipes)
 * [Files](#files)
 * [Soft and Hard links](#soft-and-hard-links)
+* [Archive](#archive)
+* [Mount unmount](#mount-unmount)
 * [SSH](#ssh)
 * [Permissions in Linux](#permissions-in-linux)
 * [System info](#system-info)
 * [Bash scripts](#bash-scripts)
+* [Run Bash Script as a Daemon](#run-bash-script-as-a-daemon)
 * [Cron](#cron)
 
 ## Data streams and pipes
@@ -43,7 +46,7 @@ $ ls | grep file.txt
 
 `pwd` - print working directory
 
-`ls` - (list) show list of all files and dirs. -l long format, -a show all files (inculde hidden that starts with dot .)
+`ls` - (list) show list of all files and dirs. -l long format, -a show all files (include hidden that starts with dot .)
 ls -l displays the files and folders with permission bits. _If the line starts with a -, it's a file, if it's a directory, it starts with a d_
 
 ```
@@ -97,6 +100,8 @@ $ rmdir -p mydir1/mydir2/mydir3/...../mydirN // including subdirectories
 
 ```
 $ mkdir -p first/second/third // create parent if necessary
+$ mkdir 20{00..18} // create multiple catalogs
+$ mkdir 20{00..18}/{01..12}
 ```
 
 `cp` (copy) stands for a copy. This command is used to copy files or groups of files or directories
@@ -328,6 +333,45 @@ $ ln  -s [original filename] [link name]
 
 In filesystems, we use the double dot (..) to access the parent directory, whereas the single dot (.) represents the current directory.
 
+## Archive
+
+`tar` stands for tape archive, which is used to create Archive and extract the Archive files
+
+```
+$ tar cvf file.tar *.c # creates a tar file called file.tar which is the Archive of all .c files in the current directory
+$ tar xvf file.tar # ‘-x’: Extracts files from an archive. ‘-v’: Displays verbose output during the extraction process. ‘-f’: Specifies the filename of the archive.
+$ tar cvzf file.tar.gz *.c # ‘-z’: Uses gzip compression. ‘-j’: Uses bzip2 compression. ‘-J’: Uses xz compression.
+$ tar xvzf file.tar.gz # extracting a gzip tar Archive *.tar.gz using option -xvzf 
+$ tar tvf file.tar # viewing the Archive using option -tvf 
+```
+
+`gzip` command compresses files. Each single file is compressed into a single file.
+Difference between Gzip and zip command in Unix and when to use which command
+
+* ZIP and GZIP are two very popular methods of compressing files, in order to save space, or to reduce the amount of time needed to transmit the files across the network, or internet.
+* In general, GZIP is much better compared to ZIP, in terms of compression, especially when compressing a huge number of files.
+* The common practice with GZIP, is to archive all the files into a single tarball before compression. In ZIP files, the individual files are compressed and then added to the archive.
+* When you want to pull a single file from a ZIP, it is simply extracted, then decompressed. With GZIP, the whole file needs to be decompressed before you can extract the file you want from the archive.
+
+```
+$ gzip mydoc.txt # create a compressed file of mydoc.txt named as mydoc.txt.gz and delete the original file
+
+```
+
+## Mount unmount
+
+`mount` command is used to mount the filesystem found on a device to big tree structure(Linux filesystem) rooted at ‘/‘. 
+Conversely, another command umount can be used to detach these devices from the Tree.
+
+`/etc/fstab` usually contains information about which device is need to be mounted where.
+Most of the devices are indicated by files like `/dev/sda4`, etc. But it can be different for certain filesystems.
+
+```
+$ mount -t [type] [device] [dir]
+$ mount -t ext4 # show only ext4 file systems
+$ sudo mount /dev/sdb1 /mnt/media # mount the /dev/sdb1 file system to the /mnt/media directory
+```
+
 ## SSH
 
 `ssh` stands for “Secure Shell”. It is a protocol used to securely connect to a remote server/system.
@@ -390,6 +434,11 @@ $ chmod 666 [file_name] // read write
 chown master file1.txt
 chown :group1 file1.txt
 chown master:group1 file1.txt
+```
+
+`chgrp` command in Linux is used to change the group ownership of a file or directory. All files in Linux belong to an owner and a group. You can set the owner by using “chown” command, and the group by the “chgrp” command.
+```
+$ sudo chgrp -R geeksforgeeks GFG # to recursively change the group ownership of a folder and all of its contents.
 ```
 
 **User IDs Range Convention**
@@ -461,6 +510,14 @@ $ sudo usermod -L test_user // to lock user
 $ sudo usermod -U test_user // to unlock
 $ sudo usermod -u 1234 test_user // to change user id
 ```
+
+```
+$ sudo groupadd developers # create a group named “developers”
+$ useradd -m -G developer -s /bin/bash ivanov # to add a new user into the group, the group is mentioned using -g
+
+```
+
+
 ## System info
 
 `systemctl` is used to examine and control the state of “systemd” system and service manager. 
@@ -516,6 +573,20 @@ $ netstat -pt // To display the PID and program names.
 $ netstat -tlnp
 ```
 
+`nmap` is Linux command-line tool for network exploration and security auditing.
+
+```
+$ nmap www.geeksforgeeks.org # show open ports
+$ nmap 192.168.1.10
+```
+
+`tcpdump` is a packet sniffing and packet analyzing tool
+
+```
+$ sudo tcpdump -D # show available interfaces
+$ sudo tcpdump -i wlo1 # capture packets from specific interface
+```
+
 `ifconfig` - (interface configuration) command is used to configure the kernel-resident network interfaces.
 
 ```
@@ -531,12 +602,22 @@ $ ip address // to show all IP addresses associated with all network devices
 $ ip route // to see the route packets your network will take as set in your routing table. The first entry is the default route.
 ```
 
+`ping` (Packet Internet Groper) command is used to check the network connectivity between host and server/host
+
+```
+$ ping -c www.geeksforgeeks.org # to stop pinging we should use ctrl+c otherwise it will keep on sending packets
+$ ping -c 5 www.geeksforgeeks.org # controlling the number of pings
+```
+
+
+
 `kill` is used to terminate processes manually
 ```
 $ kill [signal] PID
-$ kill -9 1212 // `SIGKILL` signal to kill this PID. SIGKILL has a signal number of `9`
-$ kill -l // signal numbers
-$ kill 1234 4321 2342 // kill multiple processes
+$ kill -9 1212 # `SIGKILL` signal to kill this PID. SIGKILL has a signal number of `9`. Close immedeatily
+$ kill -15 4242 # save data before exit
+$ kill -l # signal numbers
+$ kill 1234 4321 2342 # kill multiple processes
 ```
 
 SIGTERM, it sends a termination signal to the process which helps in exit gracefully. Whereas SIGKILL sends a kill signal to the process, which terminate the processes forcefully and immediately.
@@ -554,7 +635,83 @@ $ type -a pwd
 $ type ls
 ```
 
+`which` command in Linux is a command which is used to locate the executable file associated with the given command by searching it in the path environment variable.
+
+```
+$ which cd
+$ which -a python
+```
+
 ## BASH scripts
+
+### Shebang
+The Shebang interpreter directive takes the following form:
+`#!/bin/bash` - Uses bash to parse the file.
+`#!/usr/bin/env perl` - Uses the env command to find the path to the perl executable.
+`#!/usr/bin/python` Executes the file using the python binary.
+
+### Substitution
+```
+$ echo ????? # all files containing 5 symbols in the name
+$ $ echo b* # all files starts with b
+$ cp b* folder/ # copy all files starts with b to folder
+```
+
+```
+$ echo file? # file1 file2 file 3 file4 filea fileb
+$ echo file[1-2] # file 1 file2
+$ echo file[^1-2] # file 3 file4 filea fileb
+```
+
+variables
+```
+$ myvar=example # assign variable
+$ echo ${myvar}12 # example12
+```
+
+use variable global
+```
+$ export test=hello
+$ sudo
+# echo $test
+# exit
+$ echo $test
+```
+
+arguments
+
+Script prints first argument
+```
+#!/bin/bash
+echo First argument $1
+exit $1
+```
+
+`$#` is a number of arguments given when your script was executed.
+
+```
+#!/bin/bash
+[ $# != 3 ]&&echo Expected 3 arguments
+```
+
+`-lt` — less;
+`-gt` — greater;
+`-lte` — less or equal;
+`-gte` — greater or equal.
+
+```
+#!/bin/bash
+[ $# -lt 3 ]&&echo Expected greater than 3 parametrs
+```
+
+```
+echo $? # will return the exit status of last command.
+```
+
+before run script add executable to file
+```
+$ chmod +x myscript.sh
+```
 
 ### Shell
 
@@ -603,6 +760,28 @@ ls -la notExist || echo "not exist"
 ls -la notExist ; echo "all commands no matter result"
 ```
 
+```
+#!/bin/bash
+if [ $# -lt 3 ]
+then
+                     echo $0 arg1 arg2 arg3
+                     exit 1
+else
+                     echo all fine
+                     ln $1 $2
+                     ln -s $1 $3   
+
+fi
+```
+
+`let` command performs variable assignments combined with basic mathematical evaluations
+```
+$ let length=5 width=7 area=length*width
+$ echo "length: $length - width: $width - area: $area"
+length: 5 - width: 7 - area: 35
+```
+
+
 ### for loop 
 
 `````
@@ -611,6 +790,74 @@ $ for i in /etc/*.conf; do cp "$i" /backup; done
 $ for var in one two three; do echo "$var"; done
 $ for s in $(cat isro-spacecrafts.txt); do echo "Spacecraft is $s"; done
 `````
+
+```
+for i in {2000..2018}
+ do
+    for j in {1..12}
+      mv IMG_$i$j*$i/$j
+    done
+ done
+```
+
+## Run Bash Script as a Daemon
+We can make use of bash processes to run our script in the background. We launch background tasks or processes with the & operator.
+
+For example, let’s daemonize this simple script which we’ve placed at /home/baeldung/script.sh:
+```
+# Print a message every 60 seconds.
+while :; do
+    sleep 60
+    echo "Slept for 60 seconds!"
+done
+```
+
+Running the script with the nohup command ensures that it’s not killed when we exit the terminal:
+```
+$ nohup ./script.sh & # nohup logs any output from the script into the nohup.out file:
+```
+
+For killing the process, we can log the launched process’s PID into a file and use it with kill:
+
+```
+nohup ./script.sh &
+nohup: appending output to nohup.out
+echo $! > ./script.pid
+cat script.pid
+4946
+```
+
+The $! variable stores the PID of the newly launched process. Therefore, we can just kill the script:
+```
+The $! variable stores the PID of the newly launched process. Therefore, we can just kill the script:
+```
+
+**Daemonizing Script System-Wide**
+We can use systemd unit files to launch our script at boot. Unit files describe how the system should execute the given program.
+
+Let’s create a unit file at /etc/systemd/system/script_daemon.service:
+```
+[Unit]
+Description=Script Daemon
+
+[Service]
+Type=simple
+User=baeldung
+ExecStart=/home/baeldung/script.sh
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+```
+We set the user that the script will run with the User= option and the path to the script with the ExecStart= option. The various options are documented in the systemd.exec man page.
+
+Now, let’s enable the service:
+```
+sudo systemctl daemon-reload
+sudo systemctl enable script_daemon.service
+Created symlink /etc/systemd/system/shutdown.target.wants/script_daemon.service → /etc/systemd/system/script_daemon.service
+```
+
 
 ## Cron
 You can only run cron jobs once per minute. Every 30 seconds is not possible.
