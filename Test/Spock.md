@@ -58,7 +58,8 @@ def "numbers to the power of two"(int a, int b, int c) {
 ```
 
 ```
-def "numbers to the power of two"(int a, int b, int c) {
+@Unroll
+def "numbers to the power of two"(int a: #a, int b: #b, int c: #c) {
   expect:
       Math.pow(a, b) == c
 
