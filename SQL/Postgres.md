@@ -2,6 +2,7 @@
 
 * [Create database and user](#create-database-and-user)
 * [Find slow, long-running, and Blocked Queries](#find-slow-long-running-and-blocked-queries)
+* [Partitioned tables](#partitioned-tables)
 
 ### Create database and user
 ```
@@ -92,3 +93,133 @@ from pg_locks
 join pg_class on pg_locks.relation = pg_class.oid
 join pg_stat_activity on pg_locks.pid = pg_stat_activity.pid
 ```
+
+### Partitioned tables
+When partitioned tables were first introduced in PostgreSQL 10, they didn’t support foreign keys at all.
+Now that PostgreSQL 12 is out, we consider foreign keys to be fully compatible with partitioned tables.
+
+For example, we have table. And we want to divide this table into partitions.
+```
+CREATE TABLE items (
+    item_id integer PRIMARY KEY,
+    description text NOT NULL
+)
+```
+
+We need a filed for dividing.
+```
+CREATE TABLE items (
+    item_id integer PRIMARY KEY,
+    description text NOT NULL
+)
+```
+Now we can split the table into partitions based on the day number in the month.
+```
+-- Release table name
+-- Move table to partiion number one
+alter table items rename to items_1;
+
+-- Recreate main table
+create table items (like items_1) partition by list (date_part('day'::text, create_date));
+
+-- Attach old table to new. Partition key is the day number in the month.
+alter table items attach partition items_1 for values in ('1');
+
+-- Create table for all days in month from 2 to 31
+
+create table items_2 (like items_1 including all);
+alter table items attach partition items_2 for values in ('2');
+
+create table items_3 (like items_1 including all);
+alter table items attach partition items_3 for values in ('3');
+
+create table items_4 (like items_1 including all);
+alter table items attach partition items_4 for values in ('4');
+
+create table items_5 (like items_1 including all);
+alter table items attach partition items_5 for values in ('5');
+
+create table items_6 (like items_1 including all);
+alter table items attach partition items_6 for values in ('6');
+
+create table items_7 (like items_1 including all);
+alter table items attach partition items_7 for values in ('7');
+
+create table items_8 (like items_1 including all);
+alter table items attach partition items_8 for values in ('8');
+
+create table items_9 (like items_1 including all);
+alter table items attach partition items_9 for values in ('9');
+
+create table items_10 (like items_1 including all);
+alter table items attach partition items_10 for values in ('10');
+
+create table items_11 (like items_1 including all);
+alter table items attach partition items_11 for values in ('11');
+
+create table items_12 (like items_1 including all);
+alter table items attach partition items_12 for values in ('12');
+
+create table items_13 (like items_1 including all);
+alter table items attach partition items_13 for values in ('13');
+
+create table items_14 (like items_1 including all);
+alter table items attach partition items_14 for values in ('14');
+
+create table items_15 (like items_1 including all);
+alter table items attach partition items_15 for values in ('15');
+
+create table items_16 (like items_1 including all);
+alter table items attach partition items_16 for values in ('16');
+
+create table items_17 (like items_1 including all);
+alter table items attach partition items_17 for values in ('17');
+
+create table items_18 (like items_1 including all);
+alter table items attach partition items_18 for values in ('18');
+
+create table items_19 (like items_1 including all);
+alter table items attach partition items_19 for values in ('19');
+
+create table items_20 (like items_1 including all);
+alter table items attach partition items_20 for values in ('20');
+
+create table items_21 (like items_1 including all);
+alter table items attach partition items_21 for values in ('21');
+
+create table items_22 (like items_1 including all);
+alter table items attach partition items_22 for values in ('22');
+
+create table items_23 (like items_1 including all);
+alter table items attach partition items_23 for values in ('23');
+
+create table items_24 (like items_1 including all);
+alter table items attach partition items_24 for values in ('24');
+
+create table items_25 (like items_1 including all);
+alter table items attach partition items_25 for values in ('25');
+
+create table items_26 (like items_1 including all);
+alter table items attach partition items_26 for values in ('26');
+
+create table items_27 (like items_1 including all);
+alter table items attach partition items_27 for values in ('27');
+
+create table items_28 (like items_1 including all);
+alter table items attach partition items_28 for values in ('28');
+
+create table items_29 (like items_1 including all);
+alter table items attach partition items_29 for values in ('29');
+
+create table items_30 (like items_1 including all);
+alter table items attach partition items_30 for values in ('30');
+
+create table items_31 (like items_1 including all);
+alter table items attach partition items_31 for values in ('31');
+```
+
+Example partition by range
+```
+create table test_202310_1 partition of test for values from ('2023-08-11') to ('2023-08-01');
+```
+
