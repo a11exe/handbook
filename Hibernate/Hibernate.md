@@ -118,10 +118,10 @@ public class PersonNameConverter implements
 ### Inheritance strategies
 JPA specification provides several strategies:
 
-* **MappedSuperclass** – the parent classes, can’t be entities
-* **Single Table** – The entities from different classes with a common ancestor are placed in a single table.
-* **Joined Table** – Each class has its table, and querying a subclass entity requires joining the tables.
-* **Table per Class** – All the properties of a class are in its table, so no join is required.
+* [**MappedSuperclass**](#mappedsuperclass) – the parent classes, can’t be entities
+* [**Single Table**](#single-table) – The entities from different classes with a common ancestor are placed in a single table.
+* [**Joined Table**](#joined-table) – Each class has its table, and querying a subclass entity requires joining the tables.
+* [**Table per Class**](#table-per-class) – All the properties of a class are in its table, so no join is required.
 
 Entity inheritance means that we can use polymorphic queries for retrieving all the subclass entities when querying for a superclass.
 
