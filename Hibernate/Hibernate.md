@@ -1,8 +1,77 @@
 # Hibernate
 
+* [Idempotent update](#idempotent-update)
+* [Transaction Locks](#transaction-locks)
+* [Query hints](#query-hints)
+* [Show Hibernate/JPA SQL](#show-hibernatejpa-sql)
 * [Immutable](#immutable)
 * [Converter](#converter)
 * [Inheritance strategies](#inheritance-strategies)
+
+### Idempotent update
+```
+@Modifying
+@Query("update MyEntity e set e.status = :status where e.id = :id and e.status = :oldStatus")
+int idempotentStatusUpdate(@Param("id") UUID id, @Param("status") Status status, @Param("oldStatus") Status oldStatus);
+```
+
+### Transaction Locks
+JPA has two main lock types defined, Pessimistic Locking and Optimistic Locking.
+
+[Pessimistic Locking](#pessimistic-locking)
+[Optimistic Locking](#optimistic-locking)
+
+#### Pessimistic Locking
+When we use Pessimistic Locking in a transaction, and access an entity, it’ll be locked immediately. The transaction releases the lock either by committing or rolling back the transaction.
+To specify a lock on a custom query method of a Spring Data JPA repository, we can annotate the method with @Lock and specify the required lock mode type:
+```
+@Lock(LockModeType.PESSIMISTIC_READ)
+public Optional<Customer> findById(Long customerId);
+```
+
+```
+@Lock(LockModeType.PESSIMISTIC_READ)
+@QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
+public Optional<Customer> findById(Long customerId);
+```
+In JPA, achieve **SELECT FOR UPDATE** by using LockModeType of **PESSIMISTIC_WRITE** during a query
+
+
+#### Optimistic Locking
+In Optimistic Locking, the transaction doesn’t lock the entity immediately. Instead, the transaction commonly saves the entity’s state with a version number assigned to it.
+When we try to update the entity’s state in a different transaction, the transaction compares the saved version number with the existing version number during the update.
+At this point, if the version number differs, it means that we can’t modify the entity. If there’s an active transaction, then that transaction will be rolled back and the underlying JPA implementation will throw an OptimisticLockException.
+```
+@Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+@Query("SELECT c FROM Customer c WHERE c.orgId = ?1")
+public List<Customer> fetchCustomersByOrgId(Long orgId);
+```
+
+### Query hints
+Hibernate is tracking all objects loaded within the session to find the modifications and persist all the changes when you flush the session. 
+If you load the entity as read-only, you instruct Hibernate not to trace that entity for changes. 
+In that way, you will get some performance increase.
+```
+@QueryHints(value = {
+    @QueryHint(name = HINT_FETCH_SIZE, value = "3000"),
+    @QueryHint(name = HINT_CACHABLE, value = "false"),
+    @QueryHint(name = READ_ONLY, value = "true")
+})
+@Query("from MyViewEntity")
+Stream<MyEntity> findAllStream();
+```
+
+### Show Hibernate/JPA SQL
+via properties
+```
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+```
+via loggers
+```
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+```
 
 ### Immutable
 
