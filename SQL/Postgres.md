@@ -1,6 +1,7 @@
 # Postgres
 
 * [Create database and user](#create-database-and-user)
+* [Analyze queries](#analyze-queries)
 * [Find slow, long-running, and Blocked Queries](#find-slow-long-running-and-blocked-queries)
 * [Partitioned tables](#partitioned-tables)
 
@@ -16,6 +17,30 @@ Doing purely via psql
 CREATE DATABASE yourdbname;
 CREATE USER youruser WITH ENCRYPTED PASSWORD 'yourpass';
 GRANT ALL PRIVILEGES ON DATABASE yourdbname TO youruser;
+```
+
+### Analyze queries
+
+The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
+The pg_stat_statements module must be loaded by adding pg_stat_statements to shared_preload_libraries in postgresql.conf, because it requires additional shared memory.
+#### Modify PostgreSQL Configuration
+To enable pg_stat_statements, you need to modify the following PostgreSQL configuration in PostgreSQL configuration file (e.g. /etc/postgresql/12/main/postgresql.conf):
+
+```
+shared_preload_libraries = 'pg_stat_statements'
+pg_stat_statements.track = all
+```
+
+#### Restart PostgreSQL
+After you change the PostgreSQL configuration, **you need to restart PostgreSQL** to make the change effective.
+Currently, pg_stat_statements only tracks the statistics of the database where the extension is created. So you need to create the extension for each database.
+
+```
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+```
+#### Check pg_stat_statements
+```
+SELECT count(*) FROM pg_stat_statements;
 ```
 
 
