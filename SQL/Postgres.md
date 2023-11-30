@@ -1,9 +1,16 @@
 # Postgres
 
+* [Find config files](#find-config-files)
 * [Create database and user](#create-database-and-user)
 * [Analyze queries](#analyze-queries)
 * [Find slow, long-running, and Blocked Queries](#find-slow-long-running-and-blocked-queries)
 * [Partitioned tables](#partitioned-tables)
+
+### Find config files
+```
+sudo -u postgres psql -d postgres
+postgres=# SHOW hba_file;
+```
 
 ### Create database and user
 ```
@@ -42,7 +49,20 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
 SELECT count(*) FROM pg_stat_statements;
 ```
-
+To access and manipulate these statistics, the module provides views pg_stat_statements and pg_stat_statements_info, 
+and the utility functions pg_stat_statements_reset and pg_stat_statements. 
+These are not available globally but can be enabled for a specific database with CREATE EXTENSION pg_stat_statements.
+Example
+```
+SELECT substring(query, 1, 50) AS short_query,
+              round(total_exec_time::numeric, 2) AS total_time,
+              calls,
+              round(mean_exec_time::numeric, 2) AS mean,
+              round((100 * total_exec_time / sum(total_exec_time::numeric) OVER ())::numeric, 2) AS percentage_cpu
+FROM  pg_stat_statements
+ORDER BY total_time DESC
+LIMIT 20;
+```
 
 ### Find slow, long-running, and Blocked Queries
 * `pg_stat_activity`: A table with one entry per server process, showing details of the running query for each.
