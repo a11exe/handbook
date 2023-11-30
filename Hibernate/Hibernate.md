@@ -1,5 +1,6 @@
 # Hibernate
 
+* [Read-Only Repository with Spring Data](#read-only-repository-with-spring-data)
 * [Idempotent update](#idempotent-update)
 * [Transaction Locks](#transaction-locks)
 * [Query hints](#query-hints)
@@ -7,6 +8,34 @@
 * [Immutable](#immutable)
 * [Converter](#converter)
 * [Inheritance strategies](#inheritance-strategies)
+
+### Read-Only Repository with Spring Data
+It’s sometimes necessary to read data out of a database without having to modify it. 
+In this case, having a read-only Repository interface would be perfect.
+It’ll provide the ability to read data without the risk of anyone changing it.
+
+CrudRepository actually extends another interface called Repository. We can also extend this interface to fit our needs.
+
+Let’s create a new interface that extends Repository:
+```
+@NoRepositoryBean
+public interface ReadOnlyRepository<T, ID> extends Repository<T, ID> {
+    Optional<T> findById(ID id);
+    List<T> findAll();
+}
+```
+Here, we’ve only defined two read-only methods. 
+The entity that is accessed by this repository will be safe from any modification.
+It is also important to note that we must use the @NoRepositoryBean annotation to tell Spring that 
+we want this repository to remain generic. This allows us to reuse our read-only repository for as many different entities as we want.
+
+Next, we’ll see how to tie an entity to our new ReadOnlyRepository
+```
+public interface BookReadOnlyRepository extends ReadOnlyRepository<Book, Long> {
+    List<Book> findByAuthor(String author);
+    List<Book> findByTitle(String title);
+}
+```
 
 ### Idempotent update
 ```
