@@ -1,5 +1,6 @@
 # Hibernate
 
+* [Mapping a query to a custom class](#mapping-a-query-to-a-custom-class)
 * [Read-Only Repository with Spring Data](#read-only-repository-with-spring-data)
 * [Idempotent update](#idempotent-update)
 * [Transaction Locks](#transaction-locks)
@@ -8,6 +9,38 @@
 * [Immutable](#immutable)
 * [Converter](#converter)
 * [Inheritance strategies](#inheritance-strategies)
+
+### Mapping a query to a custom class
+#### Customizing the Result With Class Constructors
+The JPA specification allows us to customize results in an object-oriented fashion. 
+Therefore, we can use a JPQL constructor expression to set the result.
+This binds the output of the SELECT statement to a POJO.
+```
+@Query("SELECT new com.baeldung.aggregation.model.custom.CommentCount(c.year, COUNT(c.year)) "
+  + "FROM Comment AS c GROUP BY c.year ORDER BY c.year DESC")
+List<CommentCount> countTotalCommentsByYearClass();
+```
+#### Customizing the Result With Spring Data Projection
+Another possible solution is to customize the result of JPA queries with Spring Data Projection. 
+This functionality allows us to project query results with considerably less code.
+
+To use interface-based projection, we must define a Java interface composed of getter methods that match 
+the projected attribute names. Let’s define an interface for our query result:
+```
+public interface ICommentCount {
+    Integer getYearComment();
+    Long getTotalComment();
+}
+```
+Now let’s express our query with the result returned as List<ICommentCount>:
+```
+@Query("SELECT c.year AS yearComment, COUNT(c.year) AS totalComment "
+  + "FROM Comment AS c GROUP BY c.year ORDER BY c.year DESC")
+List<ICommentCount> countTotalCommentsByYearInterface();
+```
+Spring Data will then construct the result on-the-fly, and return a proxy instance for each row of the result
+
+
 
 ### Read-Only Repository with Spring Data
 It’s sometimes necessary to read data out of a database without having to modify it. 
