@@ -5,6 +5,15 @@
 * [Analyze queries](#analyze-queries)
 * [Find slow, long-running, and Blocked Queries](#find-slow-long-running-and-blocked-queries)
 * [Partitioned tables](#partitioned-tables)
+* [List indexes in Postgres](#list-indexes-in-postgres)
+* [Using indexes](#using-indexes)
+* [Why Is My Query Not Using an Index?](#why-is-my-query-not-using-an-index)
+* [Partial Indexes](#partial-indexes)
+* [Expression Indexes](#expression-indexes)
+* [Unique Indexes](#using-indexes)
+* [Multi-Column Indexes](#multi-column-indexes)
+* [B-trees and Sorting](#b-trees-and-sorting)
+* [Managing and Maintaining Indexes](#managing-and-maintaining-indexes)
 
 ### Find config files
 ```
@@ -267,4 +276,151 @@ Example partition by range
 ```
 create table test_202310_1 partition of test for values from ('2023-08-11') to ('2023-08-01');
 ```
+## List indexes in Postgres
+```
+SELECT
+tablename as "TableName",
+indexname as "Index Name",
+indexdef as "Index script"
+FROM
+pg_indexes
+WHERE
+schemaname = 'public'
+ORDER BY
+tablename,
+indexname;
+```
 
+## Using indexes
+There are various type of indexes. Postgres supports the following index types.
+
+* [B-Tree](#b-tree)
+* [Hash](#hash-index)
+* [GiST](#gist-indexes)
+* [SP-GiST](#sp-gist-indexes)
+* [GIN](#gist-indexes)
+* [BRIN](#brin-index)
+
+### B-Tree
+B-tree is the default index in Postgres and is best used for specific value searches, scanning ranges, 
+data sorting or pattern matching. If we don’t specify any particular index type in the CREATE INDEX command, 
+Postgres creates a B-tree index.
+Postgres automatically creates a B-tree index if we define a primary or unique key on a table. 
+You can also define the index on multiple columns (composite key) as well
+```
+CREATE INDEX IX_Addresses_id on addresses(id);
+```
+
+### Hash index
+Hash indexes are best suited to work with equality operators. The equality operator looks for the exact match of data. 
+Starting from Postgres 9.x version, the hash indexes are WAL-logged and crash-safe.
+```
+CREATE INDEX IX_Addresses_city on addresses using HASH("city");
+```
+
+### GiST indexes
+The Generalized Search Tree (GiST) is balanced, and it implements indexing schemes for new data types in a familiar balanced tree structure. 
+It can index complex data such as geometric data and network address data.
+```
+create index on demodata using gist(p);
+```
+### SP-GiST indexes
+The SP-GiST index refers to a space partitioned GiST index. 
+It is useful for indexing non-balanced data structures using the partitioned search tree.
+```
+Create index on demodata using spgist(p);
+```
+### GIN indexes
+The Generalized Inverted Index (GIN) is beneficial for indexing columns that have composite types. 
+It is best suited for data types such as **JSONB**, **Array**, **Range types** and **full-text search**.
+
+Suppose users want to get a record count of all whose first name is like %raj%, and the last name is like ‘%aec%.
+```
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX idx_id_gin ON users_user USING gin (upper(id::text) gin_trgm_ops);
+CREATE INDEX idx_first_name_gin ON users_user USING gin (upper(first_name::text) gin_trgm_ops);
+CREATE INDEX idx_last_name_gin ON users_user USING gin (upper(last_name::text) gin_trgm_ops);
+CREATE INDEX idx_phone_number_gin ON users_user USING gin (upper(phone_number::text) gin_trgm_ops);
+CREATE INDEX idx_email_gin ON users_user USING gin (upper(email::text) gin_trgm_ops);
+```
+
+### BRIN index
+The BRIN index is also known as Block Range Index. It stores the summary of blocks (minimum value, maximum value and page number). 
+Once a BRIN index is implemented, it uses the BRIN values for validating each page. 
+In case the page is not modified, its BRIN value remains the same.
+
+It is useful for extensive data such as timestamps and temperature sensor data. It also uses less storage compared to a B-tree index.
+
+## Why Is My Query Not Using an Index?
+There are many reasons why the Postgres planner can choose to not use an index. 
+Most of the time, the planner chooses correctly, even if it isn’t obvious why. 
+It’s okay if the same query uses an index scan on some occasions but not others. 
+The number of rows retrieved from the table can vary based on the particular constant values the query retrieves. 
+So, for example, it’s correct for the query planner to use an index for the query select * from foo where bar = 1, 
+and yet not use one for the query select * from foo where bar = 2 
+if there happened to be far more rows with “bar” values of 2. 
+When this happens, a sequential scan is most likely much faster than an index scan, 
+so the query planner has in fact correctly judged that the cost of performing the query that way is lower.
+
+## Partial Indexes
+A partial index covers just a subset of a table’s data. It’s an index with a WHERE clause. 
+The idea is to increase the efficiency of the index by reducing its size. 
+A smaller index takes less storage, is easier to maintain, and is faster to scan.
+
+```
+CREATE INDEX articles_flagged_created_at_index ON articles(created_at) WHERE flagged
+```
+
+## Expression Indexes
+Expression indexes are useful for queries that match on some function or modification of your data. 
+Postgres allows you to index the result of that function so that searches become as efficient as searching by raw data values.
+```
+CREATE INDEX users_lower_email ON users(lower(email));
+```
+
+## Unique Indexes
+A unique index guarantees that the table doesn’t have more than one row with the same value. 
+It’s advantageous to create unique indexes for two reasons:data integrity and performance. 
+Lookups on a unique index are very fast. Even partial unique indexes on expressions are possible.
+
+## Multi-Column Indexes
+While Postgres can create multi-column indexes, it’s important to understand when it makes sense to do so. 
+The Postgres query planner can combine and use multiple single-column indexes in a multi-column query by performing a bitmap index scan. 
+In general, you can create an index on every column that covers query conditions and in most cases, 
+Postgres will use it. So, make sure to benchmark and justify the creation of a multi-column index before you create one.
+
+However, there are cases where a multi-column index clearly makes sense. An index on columns `(a, b)` can be used 
+by queries containing `WHERE a = x AND b = y`, or queries using `WHERE a = x` only, 
+but aren’t used by a query using `WHERE b = y`. So if this matches the query patterns of your application, 
+the multi-column index approach is worth considering. 
+Also, note that in this case creating an index on a alone would be redundant.
+
+## B-trees and Sorting
+B-Tree index entries are sorted in ascending order by default. 
+In some cases, it makes sense to supply a different sort order for an index. 
+Take the case when you’re showing a paginated list of articles, sorted by most recent published first. 
+We can have a `published_at` column on our articles table. For unpublished articles, the published_at value is `NULL`.
+```
+CREATE INDEX articles_published_at_index ON articles(published_at DESC NULLS LAST);
+```
+
+## Managing and Maintaining Indexes
+Postgres decides to perform a sequential scan on any query that hits a significant portion of a table. 
+If you do have an index on that column, it’s a dead index that’s never used - and indexes aren’t free: 
+they come at a cost in terms of storage and maintenance.
+
+When tuning a query and understanding what indexes make the most sense, 
+be sure to use a database as similar as possible to what exists, or will exist in production. 
+Whether an index is used or not depends on a number of factors, including the Postgres server configuration, 
+the data in the table, the index, and the query.
+
+When you’re ready to apply an index on your production database, keep in mind that creating an index locks the table 
+against writes. For large tables that can mean your site is down for hours. 
+Fortunately, Postgres allows you to `CREATE INDEX CONCURRENTLY`, which takes much longer to build but doesn’t 
+require a lock that blocks writes. Ordinary `CREATE INDEX` commands require a lock that blocks writes but not reads.
+
+Finally, indexes will become fragmented and unoptimized after some time, especially if the rows in the table are often 
+updated or deleted. In those cases, it can be required to perform a `REINDEX` leaving you with a balanced and optimized 
+index. However, be cautious about reindexing large indexes as write locks are obtained on the parent table. 
+One strategy to achieve the same result on a live site is to build an index concurrently on the same table and columns 
+but with a different name, and then drop the original index and rename the new one.
