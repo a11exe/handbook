@@ -4,6 +4,7 @@
 * [Pointcut](#pointcut)
 * [Advice](#advice)
 * [Custom AOP Annotation](#custom-aop-annotation)
+* [Circular Dependencies](#circular-dependencies)
 * [Read only](#read-only)
 
 ## ShedLock
@@ -232,6 +233,88 @@ public void serve() throws InterruptedException {
 }
 ```
 
+## Circular Dependencies
+With a circular dependency, Spring cannot decide which of the beans should be created first since they depend on one another. 
+In these cases, Spring will raise a `BeanCurrentlyInCreationException` while loading context.
+It can happen in Spring when using **constructor injection**. If we use other types of injections, 
+we shouldn’t have this problem since the dependencies will be injected when they are needed and not on the context loading.
+
+### Redesign
+When we have a circular dependency, it’s likely we have a design problem and that the responsibilities are not well separated. 
+We should try to redesign the components properly so that their hierarchy is well designed and there is no need for circular dependencies.
+
+### Use @Lazy
+```
+    @Autowired
+    public CircularDependencyA(@Lazy CircularDependencyB circB) {
+        this.circB = circB;
+    }
+```
+
+### Use Setter/Field Injection
+```
+@Component
+public class CircularDependencyA {
+
+    private CircularDependencyB circB;
+
+    @Autowired
+    public void setCircB(CircularDependencyB circB) {
+        this.circB = circB;
+    }
+
+    public CircularDependencyB getCircB() {
+        return circB;
+    }
+}
+```
+
+### Use @PostConstruct
+
+```
+@Component
+public class CircularDependencyA {
+
+    @Autowired
+    private CircularDependencyB circB;
+
+    @PostConstruct
+    public void init() {
+        circB.setCircA(this);
+    }
+
+    public CircularDependencyB getCircB() {
+        return circB;
+    }
+}
+```
+
+### Implement ApplicationContextAware and InitializingBean
+
+If one of the beans implements ApplicationContextAware, the bean has access to Spring context and can extract the other bean from there.
+```
+@Component
+public class CircularDependencyA implements ApplicationContextAware, InitializingBean {
+
+    private CircularDependencyB circB;
+
+    private ApplicationContext context;
+
+    public CircularDependencyB getCircB() {
+        return circB;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        circB = context.getBean(CircularDependencyB.class);
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext ctx) throws BeansException {
+        context = ctx;
+    }
+}
+```
 
 ## Read only
 Read intense applications can leverage those optimizations and save resource utilization on our database cluster.
