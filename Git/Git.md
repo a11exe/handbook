@@ -2,6 +2,7 @@
 
 [Rename a Local and Remote Git Branch](#rename-a-local-and-remote-git-branch)
 [Combine multiple commits into one](#combine-multiple-commits-into-one)
+[Check branch contains commit](#check-branch-contains-commit)
 
 ### Rename a Local and Remote Git Branch
 
@@ -45,3 +46,8 @@ One more editor window will show up to change the resulting commit message.
 Here, you can find all your commit messages and change them according to your exact needs.
 
 If you have already pushed your commits, then you should force push them using the git push command with — force flag
+
+### Check branch contains commit
+```
+$ git branch --contains <commit-id>
+```
