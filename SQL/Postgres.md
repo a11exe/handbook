@@ -5,6 +5,7 @@
 * [Analyze queries](#analyze-queries)
 * [Find slow, long-running, and Blocked Queries](#find-slow-long-running-and-blocked-queries)
 * [Partitioned tables](#partitioned-tables)
+* [Identify the ranges over which a postgres table was partitioned](#identify-the-ranges-over-which-a-postgres-table-was-partitioned)
 * [List indexes in Postgres](#list-indexes-in-postgres)
 * [Using indexes](#using-indexes)
 * [Why Is My Query Not Using an Index?](#why-is-my-query-not-using-an-index)
@@ -276,6 +277,16 @@ Example partition by range
 ```
 create table test_202310_1 partition of test for values from ('2023-08-11') to ('2023-08-01');
 ```
+## Identify the ranges over which a postgres table was partitioned
+```
+select pt.relname as partition_name,
+       pg_get_expr(pt.relpartbound, pt.oid, true) as partition_expression
+from pg_class base_tb 
+  join pg_inherits i on i.inhparent = base_tb.oid 
+  join pg_class pt on pt.oid = i.inhrelid
+where base_tb.oid = 'public.tab1'::regclass;
+```
+
 ## List indexes in Postgres
 ```
 SELECT
