@@ -2,6 +2,7 @@
 
 * [Annotations](#annotations)
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
+* [Sneaky throws](#sneaky-throws)
 
 ## Annotations
 Java annotations are a mechanism for adding metadata information to our source code.
@@ -192,3 +193,26 @@ For JDK implememtation:
 For CGLIB implememtation: 
 1. we need extra dependence 
 2. final key word on method will diable the execution of add-on function
+
+## Sneaky throws
+In Java, the sneaky throw concept allows us to throw any checked exception without defining it explicitly in the method signature. 
+This allows the omission of the throws declaration, effectively imitating the characteristics of a runtime exception.
+Checked exceptions are part of Java, not the JVM. In the bytecode, we can throw any exception from anywhere, without restrictions.
+
+Java 8 brought a new type inference rule that states that a throws T is inferred as RuntimeException whenever allowed. 
+This gives the ability to implement sneaky throws without the helper method.
+
+A problem with sneaky throws is that you probably want to catch the exceptions eventually, 
+but the Java compiler doesn’t allow you to catch sneakily thrown checked exceptions using exception handler for their particular exception type.
+
+```
+public static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
+    throw (E) e;
+}
+
+private static void throwSneakyIOException() {
+    sneakyThrow(new IOException("sneaky"));
+}
+```
+The @SneakyThrows annotation from Lombok allows you to throw checked exceptions without using the throws declaration. 
+This comes in handy when you need to raise an exception from a method within very restrictive interfaces like Runnable.
