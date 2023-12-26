@@ -2,6 +2,8 @@
 
 * [Data Type Formatting](#data-type-formatting)
 * [Copy a Table](#copy-a-table)
+* [Insert with select](#insert-with-select)
+* [Stored procedure](#stored-procedure)
 * [Transactions](#transactions)
 * [Block structure](#block-structure)
 * [IF Statement](#if-statement)
@@ -60,6 +62,49 @@ BEGIN;
 ;
         
 COMMIT;
+```
+
+### Insert with select
+```
+insert into lesson (id, "name", description, link, created_at, time_seconds, last_updated_at, enabled)
+	select 	nextval(pg_get_serial_sequence('lesson', 'id')) as id,
+			l."name",
+			l.description,
+			l.link,
+			now(),
+			l.time_seconds,
+			now(),
+			true
+	from lesson l
+	where l.id = 1;
+```
+
+### Stored procedure
+```
+create or replace procedure transfer(
+   sender int,
+   receiver int, 
+   amount dec
+)
+language plpgsql    
+as $$
+begin
+    -- subtracting the amount from the sender's account 
+    update accounts 
+    set balance = balance - amount 
+    where id = sender;
+
+    -- adding the amount to the receiver's account
+    update accounts 
+    set balance = balance + amount 
+    where id = receiver;
+
+    commit;
+end;$$
+```
+Calling a stored procedure
+```
+call stored_procedure_name(argument_list);
 ```
 
 ### Block structure
