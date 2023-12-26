@@ -3,6 +3,7 @@
 * [Run Kafka in Docker](#run-kafka-in-docker)
 * [Base concepts](#base-concepts)
 * [Config](#config)
+* [Request-reply pattern](#request-reply-pattern)
 
 ### Run Kafka in Docker
 
@@ -301,4 +302,10 @@ Latest will start from the latest available message and earliest will start from
 up partitions between consumers in the consumer group.
 * `max.poll.records` Maximum number of records to be fetched in a single poll call. Useful to control throughput within each consumer.
 
+## Request-reply pattern
+Using Kafka as REST service.
+With the latest release of Spring-Kafka, request-reply semantics are available off-the-shelf.
+Request-reply semantics are not natural to Kafka. In order to achieve the request-reply pattern, 
+the developer has to build a system of correlation IDs in the producer records and match that in the consumer records.
 
+[Full example kafka request-reply pattern](https://github.com/a11exe/rest-kafka)
