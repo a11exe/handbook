@@ -15,3 +15,5 @@
 `brew upgrade git`	Upgrade package
 `brew switch git 1.0.0`	Switch package version
 `brew list --versions git`	List the installed versions of package
+`brew services` List running services
+`brew services stop postgresql@14` Stop service
