@@ -14,5 +14,6 @@
 * [Docker](./Docker/Docker.md)
 * [Spring](./Sping/Spring.md)
 * [Kafka](./Kafka/Kafka.md)
+* [RabbitMQ](./RabbitMQ/RabbitMQ.md)
 * [Java](./Java/Java.md)
 * [Lombok](./Lombok/Lombok.md)
