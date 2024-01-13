@@ -1,8 +1,47 @@
 # Java
 
+* [Java 8 features](#java-8-features)
 * [Annotations](#annotations)
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
+
+## Java 8 features
+
+* [Lambda Expression](#lambda-expression)
+* [Functional Interface](#functional-interface)
+* [Default Methods](#default-methods)
+* [Predicate](#predicate)
+* [Streams](#streams)
+
+### Lambda Expression
+A lambda is an anonymous function in Java. That is, a function which does not have a name, return type and access modifiers. 
+Lambda expressions are also known as the anonymous functions or closures.
+
+### Functional Interface
+If an interface has one and only one abstract method, then it is called as a function interface.
+```
+    @FunctionalInterface
+    Public interface A {
+        Void myMethod();
+    }
+```
+
+### Default Methods
+Starting from Java 8, we are allowed to have default method implementations inside interfaces.
+```
+    public interface A {
+        default void m1() {
+            SOP(“m1 inside A”);
+        }
+    }
+```
+### Predicate
+A predicate is a function with a single argument, and it returns a Boolean value.
+
+### Streams
+Using Streams, we can process the data in a declarative manner
+
+
 
 ## Annotations
 Java annotations are a mechanism for adding metadata information to our source code.
