@@ -9,6 +9,9 @@ Java SE 8, 11, 17 and 21 are LTS releases
 * [Java 12 features](#java-12-features)
 * [Java 14 features](#java-14-features)
 * [Java 15 features](#java-15-features)
+* [Java 16 features](#java-16-features)
+* [Java 17 features](#java-17-features)
+* [Java 21 features](#java-21-features)
 * [Annotations](#annotations)
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
@@ -270,9 +273,92 @@ public non-sealed class Manager extends Person {
 }
 ```
 
+## Java 16 features
 
+* [Invoke Default Methods From Proxy Instances](#invoke-default-methods-from-proxy-instances)
+* [Add Stream.toList](#add-streamtolist)
 
+### Invoke Default Methods From Proxy Instances
+### Add Stream.toList
+```
+List<String> integersAsString = Arrays.asList("1", "2", "3");
+List<Integer> ints = integersAsString.stream().map(Integer::parseInt).collect(Collectors.toList());
+List<Integer> intsEquivalent = integersAsString.stream().map(Integer::parseInt).toList();
+```
 
+## Java 17 features
+
+* [Sealed Classes](#sealed-classes)
+* [Java Records](#java-records)
+* [Helpful Null Pointers](#helpful-null-pointers)
+
+### Sealed Classes
+### Java Records
+### Helpful Null Pointers
+
+## Java 21 features
+
+* [Pattern matching](#pattern-matching)
+* [Unnamed Patterns and Variables](#unnamed-patterns-and-variables)
+
+### Pattern matching
+Java Introduced record type in Java 14. 
+In version 21, Java introduced record patterns that de-structures the instances of record classes and enable more sophisticated data queries.
+Record patterns were included as a preview feature in Java 19 and further refined in Java 20. 
+Java 21 delivers some major changes of this feature.
+```
+// Record Instantiation
+Point p = new Point(1, 2);
+ColoredPoint coloredPoint = new ColoredPoint(p, Color.RED);
+RandomPoint randomPoint = new RandomPoint(coloredPoint);
+
+// Accessing the Point variables with nested record pattern
+
+void nestedPrint(Object object) {
+  if(object instanceof RandomPoint(ColoredPoint(Point(int x, int y), Color c))) {
+    System.out.printf("X is %d, y is %d, Color is %s%n", x, y, c.name());
+  }
+}
+```
+The components must match, or the compiler won’t be happy:
+```
+record Point(int x, int y) { }
+
+if (obj instanceof Point(long x, int y)) {
+  // ...
+}
+
+// Error:
+// incompatible types: pattern of type long is not applicable at int
+// if (obj instanceof Point(long x, int y)) {
+//                          ^----^
+```
+We can also use switch expressions to do specific actions based on our object types:
+```
+Double result = switch (object) {
+    case Location(var name, GPSPoint(var latitude, var longitude)) -> latitude;
+    default -> 0.0;
+};
+```
+
+### Unnamed Patterns and Variables
+(preview)
+This feature improves readability throughout our code by allowing us to replace an unused variable with _ (underscore). 
+No more `@SuppressWarnings("unused")`
+```
+try {
+  //...
+} catch (Exception _) {
+  // we don't need the actual exception
+}
+
+int acc = 0;
+for (Order _ : orders) {
+    if (acc < LIMIT) { 
+      // the actual order is not used
+    }
+}
+```
 
 ## Annotations
 Java annotations are a mechanism for adding metadata information to our source code.
