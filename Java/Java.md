@@ -1,6 +1,14 @@
 # Java
 
+Java SE 8, 11, 17 and 21 are LTS releases
+
 * [Java 8 features](#java-8-features)
+* [Java 9 features](#java-9-features)
+* [Java 10 features](#java-10-features)
+* [Java 11 features](#java-11-features)
+* [Java 12 features](#java-12-features)
+* [Java 14 features](#java-14-features)
+* [Java 15 features](#java-15-features)
 * [Annotations](#annotations)
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
@@ -40,6 +48,229 @@ A predicate is a function with a single argument, and it returns a Boolean value
 
 ### Streams
 Using Streams, we can process the data in a declarative manner
+
+## Java 9 features
+
+*[Instance Private Methods and Static private Methods in Interface](#instance-private-methods-and-static-private-methods-in-interface)
+*[Improved try with resource Blocks](#improved-try-with-resource-blocks)
+*[Immutable Collection](#immutable-collection)
+*[Modules](#modules)
+
+### Instance Private Methods and Static private Methods in Interface
+Starting from Java 9, we can create private methods in an Interface 
+and can also use that private method inside of the default methods so that they can reuse certain functionality
+
+### Improved try with resource Blocks
+But starting from java 9, we can define our resources anywhere in our code which are auto closable then we can use them 
+directly in the try block like the below:
+```
+    public static void main(String[] args) {
+        MyThread th = new MyThread();
+        try (th) {
+            Th.executeSomething();
+        } catch (Exception ex) {}
+    }
+```
+### Immutable Collection
+```
+List list = List.of(“Sun”, “Moon”);
+```
+### Modules
+Java 9 introduces java platform module system. A module is a bunch of packages.
+
+## Java 10 features
+
+* [Using Var keyword to declare variable](#using-var-keyword-to-declare-variable)
+
+### Using Var keyword to declare variable
+```
+var x = 10;
+```
+
+## Java 11 features
+
+* [String API Updates](#string-api-updates)
+* [File API Updates](#file-api-updates)
+* [IsEmpty() method on Optional Class](#isempty-method-on-optional-class)
+* [Deprecations and Removals](#deprecations-and-removals)
+
+### String API Updates
+* `IsBlank()`: method
+* `lines()`: This new method in Java 11 returns a stream of Strings by splitting the string using the new line character
+```
+String str = "I\nam\nthe\ncreator of this Blog";
+System.out.println(str.lines().collect(Collectors.toList());
+```
+* `strip` method() The existing trim method does not have Unicode support. 
+There are two variations of strip method i.e, `stripLeading()` method and another one is `stripTrailing()`.
+* `repeat()` method.
+```
+System.out.println("-".repeat(100));
+```
+
+### File API Updates
+Java 11 makes it super easy to read and write strings to and from a file.
+
+`writeString`
+```
+Path path = Files.writeString(Files.createTempFile("test", ".txt"), "Java 11 features");
+```
+`readString`
+```
+String str = Files.readString(path);
+```
+
+### IsEmpty() method on Optional Class
+
+### Deprecations and Removals
+Like every other version, there are some deprecations and removals in Java 11. 
+Java 11 has removed certain packages like java.xml.ws, java.activation, java.transaction, java.xml.bind and java.corba. 
+All these packages and classes were part of the JDK earlier.
+
+## Java 12 features
+* [String Class New Methods](#string-class-new-methods)
+* [File::mismatch](#filemismatch)
+
+### String Class New Methods
+
+* `indent` adjusts the indentation of each line based on the integer parameter. 
+If the parameter is greater than zero, new spaces will be inserted at the beginning of each line. 
+On the other hand, if the parameter is less than zero, it removes spaces from the begging of each line. 
+If a given line does not contain sufficient white space, then all leading white space characters are removed.
+* `transform` It accepts a single argument function as a parameter that will be applied to the string.
+
+### File::mismatch
+The method is used to compare two files and find the position of the first mismatched byte in their contents.
+
+## Java 14 features
+
+* [Switch Expressions](#switch-expressions)
+* [Text Blocks](#text-blocks)
+* [Pattern Matching](#pattern-matching-for-instanceof)
+* [Records](#records)
+
+### Switch Expressions
+These were first introduced as a preview feature in JDK 12, and even in Java 13, they continued as preview features only. 
+But now, switch expressions have been standardized so that they are part and parcel of the development kit.
+Prior to this enhancement, we’d have written it as:
+```
+boolean isTodayHoliday;
+switch (day) {
+    case "MONDAY":
+    case "TUESDAY":
+    case "WEDNESDAY":
+    case "THURSDAY":
+    case "FRIDAY":
+        isTodayHoliday = false;
+        break;
+    case "SATURDAY":
+    case "SUNDAY":
+        isTodayHoliday = true;
+        break;
+    default:
+        throw new IllegalArgumentException("What's a " + day);
+}
+```
+With switch expressions, we can write the same thing more succinctly:
+```
+boolean isTodayHoliday = switch (day) {
+    case "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY" -> false;
+    case "SATURDAY", "SUNDAY" -> true;
+    default -> throw new IllegalArgumentException("What's a " + day);
+};
+```
+
+### Text Blocks
+Text blocks continue their journey to getting a mainstream upgrade and are still available as preview features.
+```
+String multiline = """
+    A quick brown fox jumps over a lazy dog; \
+    the lazy dog howls loudly.""";
+```
+
+### Pattern Matching for instanceof
+(preview)
+
+before:
+```
+if (obj instanceof String) {
+    String str = (String) obj;
+    int len = str.length();
+    // ...
+}
+```
+now:
+```
+if (obj instanceof String str) {
+    int len = str.length();
+    // ...
+}
+```
+### Records
+(preview)
+Records were introduced to reduce repetitive boilerplate code in data model POJOs. 
+They simplify day to day development, improve efficiency and greatly minimize the risk of human error.
+
+```
+public record User(int id, String password) { };
+```
+This simple declaration will automatically add a constructor, getters, equals, hashCode and toString methods for us.
+Records are immutable – once a record is created, you can't change its state.
+
+### Helpful NullPointerExceptions
+before:
+```
+Exception in thread "main" java.lang.NullPointerException
+at com.baeldung.MyClass.main(MyClass.java:27)
+```
+now:
+```
+java.lang.NullPointerException: Cannot store to int array because "a" is null
+```
+
+## Java 15 features
+
+* [Records](#records)
+* [Sealed Classes](#sealed-classes)
+
+### Records
+While records eliminate a lot of boilerplate code, they do allow us to override some of the default behaviors. 
+For example, we could define a canonical constructor that does some validation:
+```
+public record Person(String name, int age) {
+    public Person {
+        if(age < 0) {
+            throw new IllegalArgumentException("Age cannot be negative");
+        }
+    }
+}
+```
+
+### Sealed Classes
+Currently, Java provides no fine-grained control over the inheritance. 
+Access modifiers such as public, protected, private, as well as the default package-private, provide very coarse-grained control.
+To that end, the goal of sealed classes is to allow individual classes to declare which types may be used as sub-types. 
+This also applies to interfaces and determining which types can implement them.
+
+Sealed classes involve two new keywords — sealed and permits:
+```
+public abstract sealed class Person
+    permits Employee, Manager {
+ 
+    //...
+}
+```
+It’s important to note that any class that extends a sealed class must itself be declared sealed, non-sealed, or final. 
+This ensures the class hierarchy remains finite and known by the compiler.
+```
+public final class Employee extends Person {
+}
+
+public non-sealed class Manager extends Person {
+}
+```
+
+
 
 
 
