@@ -1,0 +1,147 @@
+{
+  "rabbit_version": "3.10.7",
+  "rabbitmq_version": "3.10.7",
+  "product_name": "RabbitMQ",
+  "product_version": "3.10.7",
+  "users": [
+    {
+      "name": "rmuser",
+      "password_hash": "v10G13lkOJUhSizZf0G7BjaRe1YqgfK+wrzz+gaXrHAwXyx3",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "rmuser",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [
+    {
+      "name": "internal_cluster_id",
+      "value": "rabbitmq-cluster-id-3WpVu4c4ZNI_UEFm62gfcA"
+    }
+  ],
+  "policies": [
+    {
+      "vhost": "/",
+      "name": "inbox.fail.policy",
+      "pattern": "^inbox$",
+      "apply-to": "queues",
+      "definition": {
+        "dead-letter-exchange": "in.fail"
+      },
+      "priority": 5
+    },
+    {
+      "vhost": "/",
+      "name": "inbox.retry.policy",
+      "pattern": "^inbox.retry$",
+      "apply-to": "queues",
+      "definition": {
+        "dead-letter-exchange": "in.retry",
+        "dead-letter-routing-key": "retry",
+        "message-ttl": 15000,
+        "queue-mode": "lazy"
+      },
+      "priority": 5
+    }
+  ],
+  "queues": [
+    {
+      "name": "inbox.retry",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "inbox",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "in",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "in.retry",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "in.fail",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "in",
+      "vhost": "/",
+      "destination": "inbox",
+      "destination_type": "queue",
+      "routing_key": "gen",
+      "arguments": {}
+    },
+    {
+      "source": "in.fail",
+      "vhost": "/",
+      "destination": "inbox.retry",
+      "destination_type": "queue",
+      "routing_key": "gen",
+      "arguments": {}
+    },
+    {
+      "source": "in.fail",
+      "vhost": "/",
+      "destination": "inbox.retry",
+      "destination_type": "queue",
+      "routing_key": "retry",
+      "arguments": {}
+    },
+    {
+      "source": "in.retry",
+      "vhost": "/",
+      "destination": "inbox",
+      "destination_type": "queue",
+      "routing_key": "retry",
+      "arguments": {}
+    }
+  ]
+}

@@ -1,9 +1,11 @@
 # Rabbit MQ
 
 * [Kafka va MQ](#kafka-va-mq)
+* [AMQProxy](#amqproxy)
 * [Run Rabbit MQ](#run-rabbit-mq)
 * [List of commands](#list-of-commands)
 * [Components](#components)
+* [Retry patterns](#retry-patterns)
 
 ### Kafka va MQ
 
@@ -18,6 +20,11 @@
 | ActiveMQ offers **total ordering destinations** to preserve message ordering across all consumers for a given topic. Nevertheless, that results in a performance cost since greater synchronization is required. | Kafka has a different take on total message ordering. Kafka ensures that messages with the same partition key will always end up in the same partition regardless of the producer. Messages are written in a partition based on their arrival order, guaranteeing a **strict ordering for messages with the same partition key**.|
 
 <img src="./Basic.png" alt="basic" width="800"/>
+
+### AMQProxy
+Use AMQProxy to solve connection reuse issues. AMQProxy is an open source AMQP proxy service that can reuse AMQP connections. 
+AMQProxy enables a client, such as a PHP client, that normally can use only short-lived connections to use persistent connections. 
+This reduces the consumption of network and ApsaraMQ for RabbitMQ resources.
 
 ### Run Rabbit MQ
 ```
@@ -68,10 +75,10 @@ RabbitMQ comes with the following 4 basic components:
 
 <img src="./RabbitMqComponents.jpeg" alt="basic" width="800"/>
 
-### Publisher
+#### Publisher
 A publisher is the user application that publishes the messages. 
 [Confirming](#https://www.rabbitmq.com/tutorials/tutorial-seven-java.html)
-### Message
+#### Message
 Message has `payload`, `rounting key`, headers.
 Also message has a property called `delivery_mode`.
 * Non-persistent (1) -
@@ -79,7 +86,7 @@ Also message has a property called `delivery_mode`.
 If message is persistent but not the queue or exchange, that message will not be persisted on disk. 
 So to guarantee proper message persistence, you have to declare both exchange & queue as durable, set message delivery mode to persistent.
 
-### Exchange
+#### Exchange
 The broker from the pub-sub mechanism is known as Exchange. It also has a Queue to store messages.
 Exchanges take a message from the producer and route it into zero or more queues. 
 The routing algorithm used depends on the exchange type and rules called bindings. 
@@ -93,9 +100,9 @@ There are the following types of exchange types:
 * `Topic` exchange: Unlike Direct exchange, they match pattern instead of an exact key. (~ 5000-10000mps)
 * `Headers` exchange: The value of the header equals the value specified upon the routing key.
 Can be durable or transient. `durable` means that the exchange will survive a RabbitMQ restart. Exchange doesn't keep messages.
-### Binding
+#### Binding
 A binding is a relationship between an exchange and a queue. This can be simply read as: the queue is interested in messages from this exchange.
-### Queue
+#### Queue
 A queue is message storage/buffer for RabbitMQ. When messages flow through RabbitMQ components, they can only be stored inside a queue.
 Many producers can send messages that go to one queue, and many consumers can try to receive data from one queue. 
 It is essentially only bound by the host’s memory & disk limits.
@@ -106,10 +113,10 @@ Usefull parameters:
 * `x-max-length` - max queue length.
 * `x-overflow` - define how to drop messages then max queue length reached (drop-head by default).
 * `x-queue-mode` - When the "lazy" queue mode is set, messages in classic queues are moved to disk as early as practically possible.
-### Policies
+#### Policies
 Policies is the recommended way of configuring optional arguments for queues, exchanges, and some plugins.
 
-### Consumer
+#### Consumer
 A consumer is a program that mostly waits to receive messages (i.e. subscribed to the messages). 
 Consumer listens for messages from RabbitMQ queues based on different policies attached.
 Consumer subscribes to only one queue.
@@ -125,3 +132,29 @@ When a node delivers a message to a consumer, it has to decide whether the messa
 * `nack/reject` with `requeue=0` and a configured Dead Letter Exchange (DLX), will publish the message to that exchange, allowing it to be picked up by another queue
 * `nack/reject` with `requeue=0` and `no DLX` will simply discard the message
 * `ack` will remove the message from the queue even if a DLX is configured
+  
+### Retry patterns
+Retry patterns are used for messages that do not require a strict processing order.
+
+#### Retry with ack and publish to another queue
+<img src="./RetryToAnotherQueue.png" alt="basic" width="600"/>
+
+* pros: simple to use and understand.
+* cons: if consumer acknowledge message after consuming and fall down before publishing to another queue, then message will be lost.
+
+#### Reject and DLX
+<img src="./RejectDLX.png" alt="basic" width="600"/>
+
+#### Retry by TTL
+After some time limit we return message to original queue for another processing.
+<img src="./RetryTTL.png" alt="basic" width="600"/>
+
+#### Example Retry DLX TTL
+<img src="./MQPatternDLX.jpg" alt="basic" width="800"/>
+
+settings available [here](./backup.json)
+* publish message to exchange `in` with routing-key `gen`.
+* read message from `queue` inbox reject requeue false.
+* after that message will be moved to queue `inbox.retry`
+* 15 seconds later message will be moved from queu `inbox.retry` to exchange `in.retry` and after to queue `inbox` with routing-key `retry`
+
