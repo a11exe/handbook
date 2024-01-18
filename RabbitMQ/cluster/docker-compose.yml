@@ -1,0 +1,58 @@
+version: "3.2"
+services:
+  lb:
+    image: haproxy:2.6.6-alpine
+    restart: always
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    ports:
+      - 15671:15672
+    links:
+      - rabbitmq1
+      - rabbitmq2
+      - rabbitmq3
+
+  rabbitmq1:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq1
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rmuser
+      RABBITMQ_DEFAULT_PASS: rmpassword
+      RABBITMQ_ERLANG_COOKIE: SUPERSECRETCOOKIE
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+    volumes:
+      - ./rabbitmq-1:/var/lib/rabbitmq
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins
+    ports:
+      - 15672:15672
+
+  rabbitmq2:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq2
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rmuser
+      RABBITMQ_DEFAULT_PASS: rmpassword
+      RABBITMQ_ERLANG_COOKIE: SUPERSECRETCOOKIE
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+    volumes:
+      - ./rabbitmq-2:/var/lib/rabbitmq
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins
+    ports:
+      - 15673:15672
+
+  rabbitmq3:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq3
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rmuser
+      RABBITMQ_DEFAULT_PASS: rmpassword
+      RABBITMQ_ERLANG_COOKIE: SUPERSECRETCOOKIE
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+    volumes:
+      - ./rabbitmq-3:/var/lib/rabbitmq
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins
+    ports:
+      - 15674:15672

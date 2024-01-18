@@ -6,6 +6,8 @@
 * [List of commands](#list-of-commands)
 * [Components](#components)
 * [Retry patterns](#retry-patterns)
+* [High load](#high-load)
+* [Clustering](#clustering)
 
 ### Kafka va MQ
 
@@ -156,5 +158,54 @@ settings available [here](./backup.json)
 * publish message to exchange `in` with routing-key `gen`.
 * read message from `queue` inbox reject requeue false.
 * after that message will be moved to queue `inbox.retry`
-* 15 seconds later message will be moved from queu `inbox.retry` to exchange `in.retry` and after to queue `inbox` with routing-key `retry`
+* 15 seconds later message will be moved from queue `inbox.retry` to exchange `in.retry` and after to queue `inbox` with routing-key `retry`
 
+### High load
+High load schema example. We can send messages to different instances using load balancing. 
+And connection consumers to different instances can improve message processing.
+
+<img src="./HighLoad.png" alt="basic" width="800"/>
+
+### Clustering
+In RabbitMQ, high availability is achieved by replicating queues across multiple nodes in a cluster. 
+This replication process, called queue mirroring, ensures that if a node fails or experiences downtime, 
+another node in the cluster can take over message processing without losing data. 
+Queue mirroring is controlled by a policy that defines which queues should be mirrored and the number of replicas to maintain.
+
+For cluster speed between nodes should be less than 30 ms. So clustering can't be used between remote data centers.
+In that case shovel or federation plugins are suitable.
+
+<img src="./Cluster.png" alt="basic" width="800"/>
+
+#### Policy-HA
+**ha-mode**
+* exactly - number or replics
+* all - to all nodes
+* nodes - node names
+
+**ha-sync-mode**
+* manual
+* automatic
+
+#### Setup cluster
+Run [docker compose](./cluster/docker-compose.yml)
+
+Connect each node to cluster. Example for second node
+```
+docker-compose exec rabbitmq2 bash 
+rabbitmqctl stop_app
+rabbitmqctl reset
+rabbitmqctl join_cluster rabbit@rabbitmq1
+rabbitmqctl start_app
+```
+
+#### Adding queue
+If we add queue with type `quorum`, it will be replicated for all nodes by default.
+For clustering classic queue we need to add policy. This policy applied to all queues by default.
+* Name: ha-all
+* Pattern: .*
+* Apply to: queues
+* Definition: ha-mode: exactly, ha-params: 2, ha-sync-mode: automatic
+* Priority: 1
+
+Another policy for specific queue with higher priority will override this policy.
