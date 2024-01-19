@@ -1,0 +1,55 @@
+version: "3.2"
+services:
+
+  grafana:
+    image: grafana/grafana:7.5.17
+    restart: always
+    environment:
+      TZ: Europe/Samara
+      GF_SERVER_ROOT_URL: http://127.0.0.1:3000
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
+    links:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:v2.39.1
+    restart: always
+    ports:
+      - 9090:9090
+    environment:
+      TZ: Europe/Samara
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/prometheus/data
+    links:
+      - telegraf
+
+  telegraf:
+    image: telegraf:latest
+    hostname: telegraf-slerm
+    restart: always
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+    ports:
+      - 9126:9126
+    links:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rmuser
+      RABBITMQ_DEFAULT_PASS: rmpassword
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit disk_free_limit 2147483648
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./formatter.conf:/etc/rabbitmq/conf.d/formatter.conf
+    ports:
+      - 15672:15672
+      - 15692:15692

@@ -8,6 +8,7 @@
 * [Retry patterns](#retry-patterns)
 * [High load](#high-load)
 * [Clustering](#clustering)
+* [Monitoring](#monitoring)
 
 ### Kafka va MQ
 
@@ -20,6 +21,7 @@
 | New messages are **pushed** or sent to consumers from the broker in the push model |  Kafka supports only **pull-based** message consumption  |
 | Message brokers like ActiveMQ and RabbitMQ offer hierarchical topics, giving consumers more subscription points and flexibility. A hierarchical topic is a structure representing a hierarchy such as /travel/flights/airline/flight-number/seat. Consumers can **subscribe to different hierarchy levels** with different values to select the events at a finer granularity. | Kafka **doesn’t offer that level of granular subscriptions to topics**. A consumer reading from a topic must do the filtering at the consumer level. |
 | ActiveMQ offers **total ordering destinations** to preserve message ordering across all consumers for a given topic. Nevertheless, that results in a performance cost since greater synchronization is required. | Kafka has a different take on total message ordering. Kafka ensures that messages with the same partition key will always end up in the same partition regardless of the producer. Messages are written in a partition based on their arrival order, guaranteeing a **strict ordering for messages with the same partition key**.|
+
 
 <img src="./Basic.png" alt="basic" width="800"/>
 
@@ -162,7 +164,7 @@ settings available [here](./backup.json)
 
 ### High load
 High load schema example. We can send messages to different instances using load balancing. 
-And connection consumers to different instances can improve message processing.
+Connection consumers to different instances can improve message processing.
 
 <img src="./HighLoad.png" alt="basic" width="800"/>
 
@@ -209,3 +211,78 @@ For clustering classic queue we need to add policy. This policy applied to all q
 * Priority: 1
 
 Another policy for specific queue with higher priority will override this policy.
+
+### Monitoring
+
+### Logging
+Log levels:
+* debug: most detailed level
+* info: common logging level 
+* warning:
+* error: 
+* critical: 
+* none: only starting rabbit info
+
+Log categories:
+* connection: 
+* channel: channel logs only for AMQP
+* queue: queue events
+* mirroring: 
+* federation: 
+* upgrade: 
+* default: 
+
+#### Logging in json format 
+mount log config file to `/etc/rabbitmq/conf.d/`. Add to config file line `log.console.formatter = json`
+
+#### Change logging level
+`rabbitmqctl set_log_level debug`
+
+
+### Monitoring setup
+
+<img src="./Monitoring.png" alt="basic" width="600"/>
+
+Run [docker-compose](./monitoring/docker-compose.yml) with monitoring setup.
+
+Check all services running:
+* prometheus [http://127.0.0.1:9090](http://127.0.0.1:9090)
+* telegraf [http://127.0.0.1:9126/metrics](http://127.0.0.1:9126/metrics)
+* grafana [http://127.0.0.1:3000/](http://127.0.0.1:3000/) admin/admin
+
+#### Setup grafana
+
+**Add datasource**
+
+Configuration → Data Sources → Prometheus
+* URL = http://prometheus:9090
+* Scrape interval = 10s 
+
+**Create dashboard**
+
+Dashboards → Manage → New Dashboard
+* Metrics - `max(rabbitmq_queue_messages) by (queue,url)` 
+* legend - `{{ queue }}`
+
+Add another metric `max(rabbitmq_queue_consumers) by (queue)`
+
+Save dashboard to apply the changes.
+
+#### Setup alerting via telegram
+
+* Register new telegram bot via [BotFather](https://t.me/BotFather) by command `/newbot`
+* get token like `6668460604:AAFJBcfu0FzL2aBRFufLs6FEBhPs_peAZv0`
+* create chat in telegram with created bot
+* add another bot [Miss Rose](https://t.me/MissRose_bot) to chat
+* send `/id` command to chat and get channel id
+* add alerting in Grafana Alerting → Notification channels → Add channel 
+* also enable `Send reminders`
+* push Test button and make sure we have received the message in telegram chat
+* open dashboard and add alert. when `avg ()` of `query (A, 5m, now)` is above `5` send to `telegram` (chanel)
+* apply and save dashboard
+
+
+
+
+
+
