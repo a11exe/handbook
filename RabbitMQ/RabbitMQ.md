@@ -9,6 +9,8 @@
 * [High load](#high-load)
 * [Clustering](#clustering)
 * [Monitoring](#monitoring)
+* [Deduplication](#deduplication)
+* [Message priority](#message-priority)
 
 ### Kafka va MQ
 
@@ -280,6 +282,15 @@ Save dashboard to apply the changes.
 * push Test button and make sure we have received the message in telegram chat
 * open dashboard and add alert. when `avg ()` of `query (A, 5m, now)` is above `5` send to `telegram` (chanel)
 * apply and save dashboard
+
+### Deduplication
+Check the key in redis before sending. If the key is missing in redis, add the message to the queue, otherwise mark it as duplicate.
+After consuming remove the key from redis. This guarantees unique messages in the queue at one moment.
+<img src="./Deduplication.png" alt="basic" width="600"/>
+
+
+### Message priority
+[Classic Queues Support Priorities](https://www.rabbitmq.com/priority.html)
 
 
 
