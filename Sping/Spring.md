@@ -6,6 +6,9 @@
 * [Custom AOP Annotation](#custom-aop-annotation)
 * [Circular Dependencies](#circular-dependencies)
 * [Read only](#read-only)
+* [Custom annotation with a bean post-processor](#custom-annotation-with-a-bean-post-processor)
+* [Profiling with MBean and BPP](#profiling-with-mbean-and-bpp)
+* [Running logic after the Spring context has been initialized](#running-logic-after-the-spring-context-has-been-initialized)
 
 ## ShedLock
 Spring provides an easy way to implement API for scheduling jobs. It works great until we deploy multiple instances of our application.
@@ -324,3 +327,192 @@ This approach handles the read connections more efficiently and prevents the unn
 the session is clean and has the appropriate setup.
 
 [Read only](https://www.baeldung.com/spring-transactions-read-only)
+
+## Custom annotation with a bean post-processor
+
+Let's create custom annotation implemented generation random number.
+Don't forget to set `RetentionPolicy.RUNTIME`
+```
+@Retention(RetentionPolicy.RUNTIME)
+public @interface InjectRandomInt {
+    int min();
+    int max();
+}
+```
+apply this annotation for class
+```
+@Component
+public class TerminatorQuoter implements Quoter {
+
+    @InjectRandomInt(min = 2, max = 8)
+    private int repeat;
+
+    @Override
+    public void sayQuote() {
+        for (int i = 0; i < repeat; i++) {
+            System.out.println("I'll be back");
+        }
+    }
+}
+```
+Implement our annotation behavior
+```
+public class InjectRandomIntAnnotationPostProcessor implements BeanPostProcessor {
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        Field[] declaredFields = bean.getClass().getDeclaredFields();
+        for (Field field: declaredFields) {
+            InjectRandomInt annotation = field.getAnnotation(InjectRandomInt.class);
+            if (annotation != null) {
+                int min = annotation.min();
+                int max = annotation.max();
+                Random random = new Random();
+                int i = min + random.nextInt(max - min);
+                field.setAccessible(true);
+                ReflectionUtils.setField(field, bean, i);
+            }
+        }
+        return bean;
+    }
+```
+Add our class to spring context
+```
+    @Bean
+    InjectRandomIntAnnotationPostProcessor injectRandomIntAnnotationPostProcessor() {
+        return new InjectRandomIntAnnotationPostProcessor();
+    }
+```
+
+
+Execution methods order for bean initialization:
+* `Object postProcessBeforeInitialization(Object bean, String beanName)`
+* init-method `@Init`
+* afterPropertiesSet
+* `@PostConstruct`
+* `Object postProcessAfterInitialization(Object bean, String beanName)`
+
+## Profiling with MBean and BPP
+
+Create annotation Profiling
+```
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Profiling {
+
+}
+```
+
+Create controller for remote turn on and off profiling via MBean
+```
+public interface ProfilingControllerMBean {
+    void setEnabled(boolean enabled);
+}
+```
+and
+```
+public class ProfilingController implements ProfilingControllerMBean {
+    private boolean isEnabled;
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
+}
+```
+Create bean post processor for handle annotation
+```
+public class ProfilingHandlerAnnotationPostProcessor implements BeanPostProcessor {
+    private Map<String, Class> map = new HashMap<>();
+    private ProfilingController controller = new ProfilingController();
+
+    public ProfilingHandlerAnnotationPostProcessor() throws Exception {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        mBeanServer.registerMBean(controller, new ObjectName("profiling", "name", "controller"));
+    }
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        Class<?> beanClass = bean.getClass();
+        if (beanClass.isAnnotationPresent(Profiling.class)) {
+            map.put(beanName, beanClass);
+        }
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        Class beanClass = map.get(beanName);
+        if (beanClass != null) {
+            return Proxy.newProxyInstance(beanClass.getClassLoader(), beanClass.getInterfaces(), (proxy, method, args) -> {
+                if (controller.isEnabled()) {
+                    System.out.println("Start profiling...");
+                    long before = System.nanoTime();
+                    Object rVal = method.invoke(bean, args);
+                    long profilingTime = System.nanoTime() - before;
+                    System.out.println("Profiling time: "+ profilingTime);
+                    System.out.println("Finish profiling");
+                    return rVal;
+                } else {
+                    return method.invoke(bean, args);
+                }
+            });
+        }
+        return bean;
+    }
+}
+```
+
+Run application
+
+* Install VisualVM
+* Open VisualVM and connect to our application java process
+* Add plugin: tools -> plugins -> add plugin VisualVM-MBeans
+* Change value to true and check profiling data in log
+
+<img src="./ProfilingMBean.png" alt="basic" width="600"/>
+
+## Running logic after the Spring context has been initialized
+
+Run method after annotation context is ready.
+
+Create annotation
+```
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PostProxy {
+
+}
+```
+
+Create class implemented ApplicationListener
+
+```
+public class PostProxyInvokerContextListener implements ApplicationListener<ContextRefreshedEvent> {
+    @Autowired
+    private ConfigurableListableBeanFactory beanFactory;
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        ApplicationContext applicationContext = event.getApplicationContext();
+        for (String beanName : applicationContext.getBeanDefinitionNames()) {
+            BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+            String originalClassNameBeforeProxy = beanDefinition.getBeanClassName();
+            try {
+                Class<?> beanOriginalClass = Class.forName(originalClassNameBeforeProxy);
+                Method[] methods = beanOriginalClass.getMethods();
+                for (Method method: methods) {
+                    if (method.isAnnotationPresent(PostProxy.class)) {
+                        Object bean = applicationContext.getBean(beanName);
+                        Method currentMethod = bean.getClass().getMethod(method.getName(), method.getParameterTypes());
+                        currentMethod.invoke(bean);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+}
+```
