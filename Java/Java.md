@@ -440,6 +440,9 @@ Java dynamic proxy is widely used in a variety of applications from Spring AOP, 
 A typical example of using Java dynamic proxy is the situation where you want to add some custom add-on functions 
 saying parameter verification on the existing class but you don’t want to modify the exiting class.
 
+* **JDK Dynamic** proxy can only proxy by interface (so your target class needs to implement an interface, which is then also implemented by the proxy class).
+* **CGLIB** (and javassist) can create a proxy by subclassing. In this scenario the proxy becomes a subclass of the target class. No need for interfaces.
+
 * [JDK](#jdk)
 * [CGLIB](#cglib)
 
