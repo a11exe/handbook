@@ -516,3 +516,62 @@ public class PostProxyInvokerContextListener implements ApplicationListener<Cont
     }
 }
 ```
+
+## Replace bean by annotation value
+**Don't use in production mode**
+Create annotation
+```
+public @interface DeprecatedClass {
+    Class newImpl();
+}
+```
+Create new class
+```
+@Component
+public class T1000 extends TerminatorQuoter {
+    @Override
+    public void sayQuote() {
+        System.out.println("I'm liquid");
+    }
+}
+```
+Mark original class with annotation
+```
+@Component
+@DeprecatedClass(newImpl = T1000.class)
+public class TerminatorQuoter implements Quoter {
+
+    @InjectRandomInt(min = 2, max = 8)
+    private int repeat;
+
+    @Override
+    public void sayQuote() {
+        for (int i = 0; i < repeat; i++) {
+            System.out.println("I'll be back");
+        }
+    }
+}
+```
+Create BeanFactoryPostProcessor. It will replace our original class with new class from annotation before bean would be created.
+```
+public class DeprecationHandlerBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
+        String[] beanDefinitionNames = configurableListableBeanFactory.getBeanDefinitionNames();
+        for (String beanName: beanDefinitionNames) {
+            BeanDefinition beanDefinition = configurableListableBeanFactory.getBeanDefinition(beanName);
+            String beanClassName = beanDefinition.getBeanClassName();
+            try {
+                Class<?> beanClass = Class.forName(beanClassName);
+                DeprecatedClass annotation = beanClass.getAnnotation(DeprecatedClass.class);
+                if (annotation != null) {
+                    beanDefinition.setBeanClassName(annotation.newImpl().getName());
+                }
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+}
+```
+Register `DeprecationHandlerBeanFactoryPostProcessor` in context
