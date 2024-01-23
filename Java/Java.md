@@ -15,6 +15,7 @@ Java SE 8, 11, 17 and 21 are LTS releases
 * [Annotations](#annotations)
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
+* [Dead Code Elimination](#dead-code-elimination)
 
 ## Java 8 features
 
@@ -575,3 +576,37 @@ private static void throwSneakyIOException() {
 ```
 The @SneakyThrows annotation from Lombok allows you to throw checked exceptions without using the throws declaration. 
 This comes in handy when you need to raise an exception from a method within very restrictive interfaces like Runnable.
+
+## Dead Code Elimination
+Dead Code Elimination is a compiler optimization technique which identifies and removes code that is not reachable or does not affect the program's output.
+
+```
+import org.openjdk.jmh.annotations.*;
+import java.util.concurrent.TimeUnit;
+
+@State(Scope.Thread)
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Fork(1)
+public class Sample08DeadCode {
+
+    private double x = Math.PI;
+
+    @Benchmark
+    public void benchmark() {}
+
+    @Benchmark
+    public void measureIncorrect() { Math.log(x); }
+
+    @Benchmark
+    public double measureCorrect() { return Math.log(x); }
+}
+```
+
+Run using JDK 1.8.0_211, Java HotSpot(TM) 64-Bit Server VM, 25.211-b12 produces following results:
+```
+Benchmark                          Mode  Cnt   Score   Error  Units
+Sample08DeadCode.benchmark         avgt    5   0,229 ± 0,018  ns/op
+Sample08DeadCode.measureCorrect    avgt    5  12,013 ± 0,047  ns/op
+Sample08DeadCode.measureIncorrect  avgt    5   0,228 ± 0,016  ns/op
+```
