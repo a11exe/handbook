@@ -9,6 +9,7 @@
 * [Custom annotation with a bean post-processor](#custom-annotation-with-a-bean-post-processor)
 * [Profiling with MBean and BPP](#profiling-with-mbean-and-bpp)
 * [Running logic after the Spring context has been initialized](#running-logic-after-the-spring-context-has-been-initialized)
+* [Injecting prototype beans into a singleton instance](#injecting-prototype-beans-into-a-singleton-instance)
 
 ## ShedLock
 Spring provides an easy way to implement API for scheduling jobs. It works great until we deploy multiple instances of our application.
@@ -575,3 +576,88 @@ public class DeprecationHandlerBeanFactoryPostProcessor implements BeanFactoryPo
 }
 ```
 Register `DeprecationHandlerBeanFactoryPostProcessor` in context
+
+## Injecting prototype beans into a singleton instance
+Let’s inject the prototype-scoped bean into the singleton. 
+```
+public class SingletonBean {
+
+    // ..
+
+    @Autowired
+    private PrototypeBean prototypeBean;
+
+    public SingletonBean() {
+        logger.info("Singleton instance created");
+    }
+
+    public PrototypeBean getPrototypeBean() {
+        logger.info(String.valueOf(LocalTime.now()));
+        return prototypeBean;
+    }
+}
+```
+Both beans were initialized only once, at the startup of the application context.
+There are several approach to manage this issue.
+
+### Injecting ApplicationContext
+```
+public class SingletonAppContextBean implements ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
+
+    public PrototypeBean getPrototypeBean() {
+        return applicationContext.getBean(PrototypeBean.class);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) 
+      throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}
+```
+Every time the `getPrototypeBean()` method is called, a new instance of PrototypeBean will be returned from the ApplicationContext.
+However, this approach has serious disadvantages. It contradicts the principle of inversion of control, as we request the dependencies from the container directly.
+Don't use it.
+
+### Lookup annotation
+```
+@Component
+public class SingletonLookupBean {
+
+    @Lookup
+    public PrototypeBean getPrototypeBean() {
+        return null;
+    }
+}
+```
+Spring will override the `getPrototypeBean()` method annotated with `@Lookup`. 
+It then registers the bean into the application context. Whenever we request the getPrototypeBean() method, it returns a new PrototypeBean instance.
+It will use `CGLIB` to generate the bytecode responsible for fetching the PrototypeBean from the application context.
+
+### Scoped Proxy
+```
+@Scope(
+  value = ConfigurableBeanFactory.SCOPE_PROTOTYPE, 
+  proxyMode = ScopedProxyMode.TARGET_CLASS)
+```
+By default, Spring holds a reference to the real object to perform the injection. Here, we create a proxy object to wire the real object with the dependent one.
+
+Each time the method on the proxy object is called, the proxy decides itself whether to create a new instance of the real object or reuse the existing one.
+
+### ObjectFactory Interface
+```
+public class SingletonObjectFactoryBean {
+
+    @Autowired
+    private ObjectFactory<PrototypeBean> prototypeBeanObjectFactory;
+
+    public PrototypeBean getPrototypeInstance() {
+        return prototypeBeanObjectFactory.getObject();
+    }
+}
+```
+Let’s have a look at getPrototypeInstance() method; getObject() returns a brand new instance of PrototypeBean for each request. Here, we have more control over initialization of the prototype.
+
+Also, the ObjectFactory is a part of the framework; this means avoiding additional setup in order to use this option.
