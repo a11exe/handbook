@@ -10,6 +10,7 @@
 * [Profiling with MBean and BPP](#profiling-with-mbean-and-bpp)
 * [Running logic after the Spring context has been initialized](#running-logic-after-the-spring-context-has-been-initialized)
 * [Injecting prototype beans into a singleton instance](#injecting-prototype-beans-into-a-singleton-instance)
+* [Properties file location](#properties-file-location)
 
 ## ShedLock
 Spring provides an easy way to implement API for scheduling jobs. It works great until we deploy multiple instances of our application.
@@ -661,3 +662,17 @@ public class SingletonObjectFactoryBean {
 Let’s have a look at getPrototypeInstance() method; getObject() returns a brand new instance of PrototypeBean for each request. Here, we have more control over initialization of the prototype.
 
 Also, the ObjectFactory is a part of the framework; this means avoiding additional setup in order to use this option.
+
+## Properties file location
+By convention, Spring Boot looks for an externalized configuration file — `application.properties` or `application.yml` — 
+in four predetermined locations in the following order of precedence:
+
+* A /config subdirectory of the current directory
+* The current directory
+* A classpath /config package
+* The classpath root
+
+Using command line
+```
+java -jar app.jar --spring.config.location=file:///Users/home/config/jdbc.properties
+```
