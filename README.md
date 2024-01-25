@@ -17,3 +17,5 @@
 * [RabbitMQ](./RabbitMQ/RabbitMQ.md)
 * [Java](./Java/Java.md)
 * [Lombok](./Lombok/Lombok.md)
+* [Maven](./Maven/Maven.md)
+* [Gradle](./Gradle/Gradle.md)
