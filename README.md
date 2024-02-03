@@ -19,3 +19,4 @@
 * [Lombok](./Lombok/Lombok.md)
 * [Maven](./Maven/Maven.md)
 * [Gradle](./Gradle/Gradle.md)
+* [Redis](./Redis/Redis.md)
