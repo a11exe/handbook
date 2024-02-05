@@ -15,6 +15,7 @@
 * [Delete container](#delete-container)
 * [Delete image](#delete-image)
 * [Ports exposing](#ports-exposing)
+* [Run app with params](#run-app-with-params)
 
 ### Check is docker working
 ```
@@ -113,4 +114,13 @@ services:
     - "9090-9091:8080-8081"              # container port range (8080-8081), assigned to given host port range (9090-9091)
     - "127.0.0.1:8002:8002"              # container port (8002), assigned to given host port (8002) and bind to 127.0.0.1
     - "6060:6060/udp"                    # container port (6060) restricted to UDP protocol, assigned to given host (6060)
+```
+
+### Run app with params
+use command
+```
+mongodb:
+  container_name: mongo
+  image: latest
+  command: mongod --httpinterface --rest
 ```
