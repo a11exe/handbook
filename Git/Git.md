@@ -3,6 +3,7 @@
 [Rename a Local and Remote Git Branch](#rename-a-local-and-remote-git-branch)
 [Combine multiple commits into one](#combine-multiple-commits-into-one)
 [Check branch contains commit](#check-branch-contains-commit)
+[Pull force](#pull-force)
 
 ### Rename a Local and Remote Git Branch
 
@@ -50,4 +51,12 @@ If you have already pushed your commits, then you should force push them using t
 ### Check branch contains commit
 ```
 $ git branch --contains <commit-id>
+```
+
+### Pull force
+```bash
+git checkout master
+git branch new-branch-to-save-current-commits
+git fetch --all
+git reset --hard origin/master
 ```
