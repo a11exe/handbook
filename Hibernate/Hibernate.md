@@ -8,6 +8,7 @@
 * [Show Hibernate/JPA SQL](#show-hibernatejpa-sql)
 * [Immutable](#immutable)
 * [Converter](#converter)
+* [Json](#json)
 * [Inheritance strategies](#inheritance-strategies)
 
 ### Mapping a query to a custom class
@@ -15,7 +16,7 @@
 The JPA specification allows us to customize results in an object-oriented fashion. 
 Therefore, we can use a JPQL constructor expression to set the result.
 This binds the output of the SELECT statement to a POJO.
-```
+```java
 @Query("SELECT new com.baeldung.aggregation.model.custom.CommentCount(c.year, COUNT(c.year)) "
   + "FROM Comment AS c GROUP BY c.year ORDER BY c.year DESC")
 List<CommentCount> countTotalCommentsByYearClass();
@@ -26,14 +27,14 @@ This functionality allows us to project query results with considerably less cod
 
 To use interface-based projection, we must define a Java interface composed of getter methods that match 
 the projected attribute names. Let’s define an interface for our query result:
-```
+```java
 public interface ICommentCount {
     Integer getYearComment();
     Long getTotalComment();
 }
 ```
 Now let’s express our query with the result returned as List<ICommentCount>:
-```
+```java
 @Query("SELECT c.year AS yearComment, COUNT(c.year) AS totalComment "
   + "FROM Comment AS c GROUP BY c.year ORDER BY c.year DESC")
 List<ICommentCount> countTotalCommentsByYearInterface();
@@ -50,7 +51,7 @@ It’ll provide the ability to read data without the risk of anyone changing it.
 CrudRepository actually extends another interface called Repository. We can also extend this interface to fit our needs.
 
 Let’s create a new interface that extends Repository:
-```
+```java
 @NoRepositoryBean
 public interface ReadOnlyRepository<T, ID> extends Repository<T, ID> {
     Optional<T> findById(ID id);
@@ -71,7 +72,7 @@ public interface BookReadOnlyRepository extends ReadOnlyRepository<Book, Long> {
 ```
 
 ### Idempotent update
-```
+```java
 @Modifying
 @Query("update MyEntity e set e.status = :status where e.id = :id and e.status = :oldStatus")
 int idempotentStatusUpdate(@Param("id") UUID id, @Param("status") Status status, @Param("oldStatus") Status oldStatus);
@@ -86,12 +87,12 @@ JPA has two main lock types defined, Pessimistic Locking and Optimistic Locking.
 #### Pessimistic Locking
 When we use Pessimistic Locking in a transaction, and access an entity, it’ll be locked immediately. The transaction releases the lock either by committing or rolling back the transaction.
 To specify a lock on a custom query method of a Spring Data JPA repository, we can annotate the method with @Lock and specify the required lock mode type:
-```
+```java
 @Lock(LockModeType.PESSIMISTIC_READ)
 public Optional<Customer> findById(Long customerId);
 ```
 
-```
+```java
 @Lock(LockModeType.PESSIMISTIC_READ)
 @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
 public Optional<Customer> findById(Long customerId);
@@ -103,7 +104,7 @@ In JPA, achieve **SELECT FOR UPDATE** by using LockModeType of **PESSIMISTIC_WRI
 In Optimistic Locking, the transaction doesn’t lock the entity immediately. Instead, the transaction commonly saves the entity’s state with a version number assigned to it.
 When we try to update the entity’s state in a different transaction, the transaction compares the saved version number with the existing version number during the update.
 At this point, if the version number differs, it means that we can’t modify the entity. If there’s an active transaction, then that transaction will be rolled back and the underlying JPA implementation will throw an OptimisticLockException.
-```
+```java
 @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
 @Query("SELECT c FROM Customer c WHERE c.orgId = ?1")
 public List<Customer> fetchCustomersByOrgId(Long orgId);
@@ -113,7 +114,7 @@ public List<Customer> fetchCustomersByOrgId(Long orgId);
 Hibernate is tracking all objects loaded within the session to find the modifications and persist all the changes when you flush the session. 
 If you load the entity as read-only, you instruct Hibernate not to trace that entity for changes. 
 In that way, you will get some performance increase.
-```
+```java
 @QueryHints(value = {
     @QueryHint(name = HINT_FETCH_SIZE, value = "3000"),
     @QueryHint(name = HINT_CACHABLE, value = "false"),
@@ -137,7 +138,7 @@ logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 
 ### Immutable
 
-```
+```java
 @Entity
 @Immutable
 @Table(name = "events_generated")
@@ -148,7 +149,7 @@ public class EventGeneratedId
 If we try to update entity Hibernate will simply ignore the update operation without throwing an exception.
 
 Immutable also can be used with collections.
-```
+```java
 @Immutable
 public Set<String> getGuestList() {
     return guestList;
@@ -164,7 +165,7 @@ org.hibernate.HibernateException:
 `@Converter` allow us to map JDBC types to Java classes.
 
 Data class
-```
+```java
 public class PersonName implements Serializable {
 
     private String name;
@@ -174,7 +175,7 @@ public class PersonName implements Serializable {
 }
 ```
 Entity
-```
+```java
 @Entity(name = "PersonTable")
 public class Person {
 
@@ -188,7 +189,7 @@ Now we need to create a converter that transforms the PersonName attribute to a 
 To do so we have to annotate our converter class with @Converter and implement the AttributeConverter interface. 
 We’ll parametrize the interface with the types of the class and the database column, in that order.
 Notice that we had to implement 2 methods: convertToDatabaseColumn() and convertToEntityAttribute().
-```
+```java
 @Converter
 public class PersonNameConverter implements 
   AttributeConverter<PersonName, String> {
@@ -245,6 +246,109 @@ public class PersonNameConverter implements
     }
 }
 ```
+### Json
+#### Store json as varchar
+Stored data:
+```java
+public class Address {
+    private String postCode;
+
+    private String city;
+
+    // constructor, getters and setters
+}
+```
+Enitiy
+```java
+@Entity
+@Table(name = "student")
+public class StudentEntity {
+    @Id
+    @Column(name = "student_id", length = 8)
+    private String id;
+
+    @Column(name = "admit_year", length = 4)
+    private String admitYear;
+
+    @Convert(converter = AddressAttributeConverter.class)
+    @Column(name = "address", length = 500)
+    private Address address;
+
+    // constructor, getters and setters
+}
+```
+It’s mandatory to define two conversion methods for every AttributeConverter implementation. 
+One converts the Java data type to its corresponding database data type, while the other converts the database data type to the Java data type
+```java
+@Converter
+public class AddressAttributeConverter implements AttributeConverter<Address, String> {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public String convertToDatabaseColumn(Address address) {
+        try {
+            return objectMapper.writeValueAsString(address);
+        } catch (JsonProcessingException jpe) {
+            log.warn("Cannot convert Address into JSON");
+            return null;
+        }
+    }
+
+    @Override
+    public Address convertToEntityAttribute(String value) {
+        try {
+            return objectMapper.readValue(value, Address.class);
+        } catch (JsonProcessingException e) {
+            log.warn("Cannot convert JSON into Address");
+            return null;
+        }
+    }
+}
+```
+
+#### Store json as jsonb
+JSONB type enforces data validation on the stored value that makes sure the column value is a valid JSON. 
+PostgreSQL rejects any attempts to insert or update data with invalid JSON values.
+Quering using json data:
+```java
+@Repository
+public interface StudentRepository extends CrudRepository<StudentEntity, String> {
+    @Query(value = "SELECT * FROM student WHERE address->>'postCode' = :postCode", nativeQuery = true)
+    List<StudentEntity> findByAddressPostCode(@Param("postCode") String postCode);
+```
+Indexing
+```sql
+CREATE INDEX idx_postcode ON student USING HASH((address->'postCode'));
+```
+We have to add dependency:
+```
+<dependency>
+    <groupId>io.hypersistence</groupId>
+    <artifactId>hypersistence-utils-hibernate-55</artifactId>
+    <version>3.7.0</version>
+</dependency>
+```
+Entity:
+```java
+@Entity
+@Table(name = "student")
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+public class StudentEntity {
+    @Id
+    @Column(name = "student_id", length = 8)
+    private String id;
+
+    @Column(name = "admit_year", length = 4)
+    private String admitYear;
+
+    @Type(type = "jsonb")
+    @Column(name = "address", columnDefinition = "jsonb")
+    private Address address;
+
+    // getters and setters
+}
+```
+For this case of using @Type, we don’t need to apply the AttributeConverter to the address field anymore.
 
 ### Inheritance strategies
 JPA specification provides several strategies:
@@ -260,7 +364,7 @@ Entity inheritance means that we can use polymorphic queries for retrieving all 
 Using the MappedSuperclass strategy, inheritance is only evident in the class but not the entity model.
 
 Let’s start by creating a Person class that will represent a parent class:
-```
+```java
 @MappedSuperclass
 public class Person {
 
@@ -273,7 +377,7 @@ public class Person {
 ```
 Notice that this class no longer has an @Entity annotation, as it won’t be persisted in the database by itself.
 Next, let’s add an Employee subclass:
-```
+```java
 @Entity
 public class MyEmployee extends Person {
     private String company;
@@ -287,7 +391,7 @@ If we’re using this strategy, ancestors cannot contain associations with other
 The Single Table strategy creates one table for each class hierarchy. JPA also chooses this strategy by default if we don’t specify one explicitly.
 
 We can define the strategy we want to use by adding the @Inheritance annotation to the superclass:
-```
+```java
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class MyProduct {
@@ -305,7 +409,7 @@ public class Book extends MyProduct {
     private String author;
 }
 ```
-```
+```java
 @Entity
 public class Pen extends MyProduct {
     private String color;
@@ -317,7 +421,7 @@ Since the records for all entities will be in the same table, Hibernate needs a 
 By default, this is done through a discriminator column called DTYPE that has the name of the entity as a value.
 
 To customize the discriminator column, we can use the @DiscriminatorColumn annotation:
-```
+```java
 @Entity(name="products")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="product_type", 
@@ -329,7 +433,7 @@ public class MyProduct {
 Here we’ve chosen to differentiate MyProduct subclass entities by an integer column called product_type.
 
 Next, we need to tell Hibernate what value each subclass record will have for the product_type column:
-```
+```java
 @Entity
 @DiscriminatorValue("1")
 public class Book extends MyProduct {
@@ -344,7 +448,7 @@ Hibernate adds two other predefined values that the annotation can take — null
 Using this strategy, each class in the hierarchy is mapped to its table. The only column that repeatedly appears in all the tables is the identifier, which will be used for joining them when needed.
 
 Let’s create a superclass that uses this strategy:
-```
+```java
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Animal {
@@ -356,7 +460,7 @@ public class Animal {
 }
 ```
 Then we can simply define a subclass:
-```
+```java
 @Entity
 public class Pet extends Animal {
     private String name;
@@ -377,7 +481,7 @@ The Table per Class strategy maps each entity to its table, which contains all t
 The resulting schema is similar to the one using @MappedSuperclass. But Table per Class will indeed define entities for parent classes, allowing associations and polymorphic queries as a result.
 
 To use this strategy, we only need to add the @Inheritance annotation to the base class:
-```
+```java
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class Vehicle {
