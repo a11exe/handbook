@@ -15,6 +15,7 @@
 * [Multi-Column Indexes](#multi-column-indexes)
 * [B-trees and Sorting](#b-trees-and-sorting)
 * [Managing and Maintaining Indexes](#managing-and-maintaining-indexes)
+* [View](#view)
 
 ### Find config files
 ```
@@ -435,3 +436,23 @@ updated or deleted. In those cases, it can be required to perform a `REINDEX` le
 index. However, be cautious about reindexing large indexes as write locks are obtained on the parent table. 
 One strategy to achieve the same result on a live site is to build an index concurrently on the same table and columns 
 but with a different name, and then drop the original index and rename the new one.
+
+## View
+A view is an SQL statement stored in the database with a name. It is like a virtual table that displays a subset of data from one or more tables.
+With a regular view (simple or complex), we can simplify a query statement or restrict access to database data 
+by granting its usage to some specific users or tenants of our database. However, each time we access it, it will run the relative query.
+
+```sql
+CREATE VIEW employee_details AS
+SELECT
+employee_id,
+employee_name
+FROM employee;
+```
+
+### Materialized Views
+A materialized view instead stores data on the disk. It serves as a snapshot view of the data. Although it is static data, we can refresh it if required. Materialized views can improve query performance. 
+Thus, the data is pre-computed and stored in a table for faster access.
+With PostgreSQL, we have a [DDL command](https://www.postgresql.org/docs/current/rules-materializedviews.html) for a materialized view. 
+However, we need a manual refresh if we need the latest data.
+The Oracle database, being more oriented to DataWarehouse, has an advanced DDL definition, with features such as, for example, refresh on schedule or commit. 
