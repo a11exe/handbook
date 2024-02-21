@@ -1,5 +1,6 @@
 # Postgres
 
+* [Check version](#check-version)
 * [Find config files](#find-config-files)
 * [Create database and user](#create-database-and-user)
 * [Analyze queries](#analyze-queries)
@@ -16,6 +17,12 @@
 * [B-trees and Sorting](#b-trees-and-sorting)
 * [Managing and Maintaining Indexes](#managing-and-maintaining-indexes)
 * [View](#view)
+
+### Check version
+
+```sql
+select version();
+```
 
 ### Find config files
 ```
@@ -274,10 +281,16 @@ create table items_31 (like items_1 including all);
 alter table items attach partition items_31 for values in ('31');
 ```
 
-Example partition by range
+### Example partition by range
 ```
 create table test_202310_1 partition of test for values from ('2023-08-11') to ('2023-08-01');
 ```
+
+### Postgres 11 — default partitions.
+```sql
+create table my_table_default PARTITION OF my_table DEFAULT;
+```
+
 ## Identify the ranges over which a postgres table was partitioned
 ```
 select pt.relname as partition_name,
