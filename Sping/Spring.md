@@ -11,6 +11,7 @@
 * [Running logic after the Spring context has been initialized](#running-logic-after-the-spring-context-has-been-initialized)
 * [Injecting prototype beans into a singleton instance](#injecting-prototype-beans-into-a-singleton-instance)
 * [Properties file location](#properties-file-location)
+* [Get pid after it starts](#Get-pid-after-it-starts)
 
 ## ShedLock
 Spring provides an easy way to implement API for scheduling jobs. It works great until we deploy multiple instances of our application.
@@ -675,4 +676,18 @@ in four predetermined locations in the following order of precedence:
 Using command line
 ```
 java -jar app.jar --spring.config.location=file:///Users/home/config/jdbc.properties
+```
+
+## Get pid after it starts
+```java
+SpringApplication springApplication = new SpringApplication(MyApplication.class);
+springApplication.addListeners(new ApplicationPidFileWriter());  // Pid Listener
+springApplication.run(args);
+```
+add to yml
+```yml
+spring:
+  pid:
+    file: /var/run/myapp.pid # Location of the PID file to write (if ApplicationPidFileWriter is used).
+    fail-on-write-error: true # Fails if ApplicationPidFileWriter is used but it cannot write the PID file.
 ```
