@@ -17,6 +17,7 @@
 * [B-trees and Sorting](#b-trees-and-sorting)
 * [Managing and Maintaining Indexes](#managing-and-maintaining-indexes)
 * [View](#view)
+* [Performing settings](#performing-settings)
 
 ### Check version
 
@@ -469,3 +470,97 @@ Thus, the data is pre-computed and stored in a table for faster access.
 With PostgreSQL, we have a [DDL command](https://www.postgresql.org/docs/current/rules-materializedviews.html) for a materialized view. 
 However, we need a manual refresh if we need the latest data.
 The Oracle database, being more oriented to DataWarehouse, has an advanced DDL definition, with features such as, for example, refresh on schedule or commit. 
+
+## Performing settings
+
+[PostgreSQL Performance Tuning Settings](https://vladmihalcea.com/postgresql-performance-tuning-settings/)
+
+While there are many settings you can configure in PostgreSQL, not all of them are related to performance tuning. Therefore, we are going to focus on the following configuration settings:
++ [max_connections](#max_connections)
++ [shared_buffers](#shared_buffers)
++ [effective_cache_size](#shared_buffers)
++ [work_mem](#work_mem)
++ [maintenance_work_mem](#maintenance_work_mem)
++ [autovacuum_max_workers](#maintenance_work_mem)
++ [wal_buffers](#maintenance_work_mem)
++ [effective_io_concurrency](#effective_io_concurrency)
++ [random_page_cost](#effective_io_concurrency)
++ [seq_page_cost](#effective_io_concurrency)
++ [log_min_duration_statement](#log_min_duration_statement)
+
+If you want to check the default values for your PostgreSQL system, then you can use the following SQL query:
+
+```sql
+SELECT
+    name AS setting_name,
+    setting AS setting_value,
+    unit AS setting_unit
+FROM pg_settings
+WHERE name IN (
+    'max_connections',
+    'shared_buffers',
+    'effective_cache_size',
+    'work_mem',
+    'maintenance_work_mem',
+    'autovacuum_max_workers',
+    'wal_buffers',
+    'effective_io_concurrency',
+    'random_page_cost',
+    'seq_page_cost',
+    'log_min_duration_statement'
+)
+```
+
+### max_connections
+By default, PostgreSQL uses a `max_connections` value of 100, but that’s way too much for development or test environments that have a small number of CPU cores.
+If you wonder why Aiven uses a much lower `max_connections` value, then check out this HikariCP guideline about pool sizing. The maximum number of database connections shouldn’t be very large, as otherwise, 
+it could affect transaction throughput.
+
+### shared_buffers
+The PostgreSQL documentation recommends setting the `shared_buffers` value to at most 25% of the available RAM.
+The remaining 75% of RAM can, therefore, be allocated to the OS kernel, the additional services running by the OS, the client connections, and the OS cache.
+By default, the shared_buffers configuration dictates that PostgreSQL will call 16384 pages of 8kB. So, by default, Shared Buffers is set to a size of 128 MB of RAM, which is very small considering the amount of RAM we have available in our development or testing environments.
+
+Apart from the `shared_buffers` configuration, we also need to set the `effective_cache_size` value, which tells PostgreSQL how much RAM is available for caching the data pages, both in the Shared Buffers and in the OS Cache. This setting is used by the PostgreSQL query Optimizer to determine whether indexes fit in RAM.
+
+The default value is set to 524288 pages of 8km, which is 4GB of RAM. On my machine, which has 32GB of RAM, this value is rather low, and I’d need to raise it to at least 8 or 16 GB.
+
+### work_mem
+The `work_mem` setting allows you to set the maximum amount of memory a query operation can use prior to writing the temporary data to the disk.
+
+The default value is just 4MB, so for 100 connections, PostgreSQL could use 400 MB of transient memory for in-memory query operations (e.g., ORDER BY, Hash Joins, Hash Aggregate, Window Functions).
+
+If we run many simple queries in parallel, then we don’t need a lot of memory for sorting or hashing.
+On the other hand, if we have a batch processing application that runs a small number of complex queries in parallel, then the work_mem seating should be higher.
+
+### maintenance_work_mem
+The `maintenance_work_mem` setting tells PostgreSQL how much memory it can use for maintenance operations, such as VACUUM, index creation, or other DDL-specific operations. 
+The total memory used for maintenance operations is given by multiplying the number of `autovacuum_max_workers` with the value of the `maintenance_work_mem` setting.
+
+The default value of `maintenance_work_mem` is 64 MB, and when multiplied by the default value of `autovacuum_max_workers`, which is 3, we get a total memory value of 192 MB for maintenance operations.
+
+On his blog, Robert Haas recommends finding the largest table and multiplying the maximum number of tuples with the value of 1.2 in order to get a starting value for the maintenance_work_mem setting:
+
+For instance, if your largest table contains 100 million tuples, 100 million * 1.2 = 120 MB, so maybe configure 192MB or even 256MB to be on the safe side.
+
+Another setting used for maintenance operations is `wal_buffers`, which allows storing in memory the WAL (Write-Ahead Log or Redo Log) segments before writing them to disk. By default, PostgreSQL uses a value that’s 1/32 of the `shared_buffer setting`. 
+Therefore, my local PostgreSQL uses a value of 4 MB for the `wal_buffers setting`.
+
+### effective_io_concurrency
+The `effective_io_concurrency` setting defines the number of simultaneous read and write operations that can be operated by the underlying disk.
+
+The value of 0 on my default PostgreSQL database instance means that the asynchronous I/O operations are disabled.
+When you start testing, you can use the initial values indicated by EnterpriseDB: 2 for HDD and 200 for SSD.
+
+Another setting you might be interested in configuring if you are using a Solid State Drive (SSD) is `random_page_cost`, 
+which is used by the query Optimizer to calculate the cost of a random access page. 
+When generating the Execution Plan for a given SQL query, the database will compare the `random_page_cost` and `seq_page_cost` to determine whether using an index and issuing random access reads against the table pages is less costly than simply scanning the entire table.
+
+### log_min_duration_statement
+The `log_min_duration_statement` allows PostgreSQL to log statements that take longer than the provided threshold value.
+
+By default, this feature is disabled, hence the value of -1 on my local PostgreSQL database instance.
+
+On the other hand, Aiven uses a value of 1000 ms, meaning that every SQL query that takes longer than a second will be printed in the database log for us to investigate it.
+
+
