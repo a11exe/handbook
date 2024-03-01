@@ -388,6 +388,9 @@ if there happened to be far more rows with “bar” values of 2.
 When this happens, a sequential scan is most likely much faster than an index scan, 
 so the query planner has in fact correctly judged that the cost of performing the query that way is lower.
 
+It very depends on the data in the database. The more selective the query, the more likely it is to use the index.
+Otherwise, if the selected result is too large, Postrgres can use sequence scan.
+
 ## Partial Indexes
 A partial index covers just a subset of a table’s data. It’s an index with a WHERE clause. 
 The idea is to increase the efficiency of the index by reducing its size. 
