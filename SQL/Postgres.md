@@ -7,6 +7,7 @@
 * [Find slow, long-running, and Blocked Queries](#find-slow-long-running-and-blocked-queries)
 * [Partitioned tables](#partitioned-tables)
 * [Identify the ranges over which a postgres table was partitioned](#identify-the-ranges-over-which-a-postgres-table-was-partitioned)
+* [Which partition contains a specific row](#which-partition-contains-a-specific-row)
 * [List indexes in Postgres](#list-indexes-in-postgres)
 * [Using indexes](#using-indexes)
 * [Why Is My Query Not Using an Index?](#why-is-my-query-not-using-an-index)
@@ -300,6 +301,13 @@ from pg_class base_tb
   join pg_inherits i on i.inhparent = base_tb.oid 
   join pg_class pt on pt.oid = i.inhrelid
 where base_tb.oid = 'public.tab1'::regclass;
+```
+
+## Which partition contains a specific row
+```sql
+SELECT tableoid::pg_catalog.regclass
+  FROM collections
+  WHERE collection_id = 2;
 ```
 
 ## List indexes in Postgres
