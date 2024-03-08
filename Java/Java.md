@@ -2,6 +2,7 @@
 
 Java SE 8, 11, 17 and 21 are LTS releases
 
+* [Most Important JVM Parameters](#most-important-jvm-parameters)
 * [Java 8 features](#java-8-features)
 * [Java 9 features](#java-9-features)
 * [Java 10 features](#java-10-features)
@@ -16,6 +17,96 @@ Java SE 8, 11, 17 and 21 are LTS releases
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
 * [Dead Code Elimination](#dead-code-elimination)
+
+## Most Important JVM Parameters
+
++ [JVM options](#jvm-options)
++ [Minimal and maximal heap size](#minimal-and-maximal-heap-size)
++ [GC](#gc)
++ [Others](#others)
+
+### JVM options
++ `-Dfile.encoding=UTF-8`
++ `-Djava.io.tmpdir=/mydir/`
++ `java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000 OurApplication` remote debug
+
+### Minimal and maximal heap size.
+```shell
+-Xms<heap size>[unit] 
+-Xmx<heap size>[unit]
+```
+Here, unit denotes the unit in which we’ll initialize the memory (indicated by heap size). We can mark units as ‘g’ for GB, ‘m’ for MB, and ‘k’ for KB.
+
+As per the Oracle guidelines, after total available memory, the second most influential factor is the proportion of the heap reserved for the Young Generation. By default, the minimum size of the YG is 1310 MB, and maximum size is unlimited.
+
+We can assign them explicitly:
+```shell
+-XX:NewSize=<young size>[unit] 
+-XX:MaxNewSize=<young size>[unit]
+```
+
+### GC
+For better stability of the application, choosing the right Garbage Collection algorithm is critical.
+JVM has four types of GC implementations:
+
++ Serial Garbage Collector
++ Parallel Garbage Collector
++ CMS Garbage Collector
++ G1 Garbage Collector
+We can declare these implementations with the below parameters:
+```shell
+-XX:+UseSerialGC
+-XX:+UseParallelGC
+-XX:+USeParNewGC
+-XX:+UseG1GC
+```
+
+To strictly monitor the application health, we should always check the JVM’s Garbage Collection performance. The easiest way to do this is to log the GC activity in human readable format.
+
+Using the following parameters, we can log the GC activity:
+```shell
+-XX:+UseGCLogFileRotation 
+-XX:NumberOfGCLogFiles=< number of log files > 
+-XX:GCLogFileSize=< file size >[ unit ]
+-Xloggc:/path/to/gc.log
+```
++ `UseGCLogFileRotation` specifies the log file rolling policy, much like log4j, s4lj, etc. 
++ `NumberOfGCLogFiles` denotes the max number of log files we can write for a single application life cycle. 
++ `GCLogFileSize` specifies the max size of the file. Finally, loggc denotes its location.
+
+One point to note here is that there are two more JVM parameters available (`-XX:+PrintGCTimeStamps` and `-XX:+PrintGCDateStamps`) that we can use to print date-wise timestamps in the GC log.
+
+It’s very common for a large application to face an out of memory error, which in turn results in an application crash. It’s a very critical scenario, and very hard to replicate to troubleshoot the issue.
+
+That’s why JVM comes with some parameters to dump heap memory into a physical file that we can use later to find leaks:
+```shell
+-XX:+HeapDumpOnOutOfMemoryError 
+-XX:HeapDumpPath=./java_pid<pid>.hprof
+-XX:OnOutOfMemoryError="< cmd args >;< cmd args >" 
+-XX:+UseGCOverheadLimit
+```
+
++ `HeapDumpOnOutOfMemoryError` instructs the JVM to dump heap into a physical file in case of OutOfMemoryError.
++ `HeapDumpPath` denotes the path where the file will be written. Any filename can be given; however, if JVM finds a <pid> tag in the name, the process id of the current process causing the out of memory error will be appended to the file name with .hprof format.
++ `OnOutOfMemoryError` is used to issue emergency commands that will be executed in case of an out of memory error. We should use proper commands in the space of cmd args. 
+For example, if we want to restart the server as soon as an out of memory occurs, we can set the parameter: `-XX:OnOutOfMemoryError="shutdown -r"`
++ `UseGCOverheadLimit` is a policy that limits the proportion of the VM’s time that’s spent in GC before an OutOfMemory error is thrown.
+
+[Tuning Garbage Collection with Oracle JDK](https://docs.oracle.com/cd/E40972_01/doc.70/e40973/cnf_jvmgc.htm#autoId1)
+
+### Others
++ `-server`: enables “Server Hotspot VM.” We use this parameter by default in 64 bit JVM.
++ `-XX:+UseStringDeduplication`: Java 8u20 has introduced this JVM parameter for reducing the unnecessary use of memory by creating too many instances of the same String. This optimizes the heap memory by reducing duplicate String values to a single global char[] array.
++ `-XX:+UseLWPSynchronization`: sets a LWP (Light Weight Process) based synchronization policy instead of thread-based synchronization.
++ `-XX:LargePageSizeInBytes`: sets the large page size used for the Java heap. It takes the argument in GB/MB/KB. With larger page sizes, we can make better use of virtual memory hardware resources; however, this may cause larger space sizes for the PermGen, which in turn can force us to reduce the size of the Java heap space.
++ `-XX:MaxHeapFreeRatio`: sets the maximum percentage of heap free after GC to avoid shrinking
++ `-XX:MinHeapFreeRatio`: sets the minimum percentage of heap free after GC to avoid expansion. To monitor the heap usage, we can use VisualVM shipped with JDK.
++ `-XX:SurvivorRatio`: Ratio of eden/survivor space size. For example, -XX:SurvivorRatio=6 sets the ratio between each survivor space and eden space to be 1:6.
++ `-XX:+UseLargePages`: use large page memory if the system supports it. Please note that OpenJDK 7 tends to crash if using this JVM parameter.
++ `-XX:+UseStringCache`: enables caching of commonly allocated strings available in the String pool
++ `-XX:+UseCompressedStrings`: use a byte[] type for String objects which can be represented in pure ASCII format
++ `-XX:+OptimizeStringConcat`: it optimizes String concatenation operations where possible
+
 
 ## Java 8 features
 
