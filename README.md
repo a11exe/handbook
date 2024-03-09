@@ -22,3 +22,4 @@
 * [Redis](./Redis/Redis.md)
 * [MongoDB](./MongoDB/MongoDB.md)
 * [Scala](./Scala/Scala.md)
+* [Python](./Python/Python.md)
