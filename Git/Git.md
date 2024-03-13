@@ -4,6 +4,7 @@
 [Combine multiple commits into one](#combine-multiple-commits-into-one)
 [Check branch contains commit](#check-branch-contains-commit)
 [Pull force](#pull-force)
+[Show commit](#show-commit)
 
 ### Rename a Local and Remote Git Branch
 
@@ -59,4 +60,9 @@ git checkout master
 git branch new-branch-to-save-current-commits
 git fetch --all
 git reset --hard origin/master
+```
+
+### Show commit
+```bash
+git show <commit-id>
 ```
