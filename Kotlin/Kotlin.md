@@ -8,7 +8,15 @@
 + [Conditional expressions](#conditional-expressions)
 + [Loops](#loops)
 + [Collections](#collections)
-
++ [DTO](#dto)
++ [Default values for function parameters](#default-values-for-function-parameters)
++ [Lazy property](#lazy-property)
++ [Extension functions](#extension-functions)
++ [Try-catch expression](#try-catch-expression)
++ [Single-expression functions](#single-expression-functions)
++ [Call multiple methods on an object instance (with)](#call-multiple-methods-on-an-object-instance-with)
++ [Configure properties of an object (apply)](#configure-properties-of-an-object-apply)
++ [Mark code as incomplete (TODO)](#mark-code-as-incomplete-todo)
 
 ## Input & output
 
@@ -134,6 +142,17 @@ fun maxOf(a: Int, b: Int): Int {
 short if
 ```kotlin
 fun maxOf(a: Int, b: Int) = if (a > b) a else b
+```
+
+if with result
+```kotlin
+val y = if (x == 1) {
+    "one"
+} else if (x == 2) {
+    "two"
+} else {
+    "other"
+}
 ```
 
 ## Loops
@@ -298,4 +317,115 @@ println(numbers.mapIndexed { idx, value -> value * idx })
 
 val numbers = listOf("one", "two", "three", "four")
 println(numbers.associateWith { it.length }) // {one=3, two=3, three=5, four=4}
+```
+
+## DTO
+Create DTOs (POJOs/POCOs)
+
+```kotlin
+data class Customer(val name: String, val email: String)
+
+data class User(val name: String = "", val age: Int = 0)
+```
+
+To exclude a property from the generated implementations, declare it inside the class body
+(`.equals()` only evaluates properties from the primary constructor):
+```kotlin
+data class Person(val name: String) {
+    var age: Int = 0
+}
+```
+
+provides a Customer class with the following functionality:
+getters (and setters in case of vars) for all properties
++ `equals()`
++ `hashCode()`
++ `toString()`
++ `copy()`
+
+## Default values for function parameters
+
+```kotlin
+fun foo(a: Int = 0, b: String = "") { ... }
+```
+
+## Lazy property
+```kotlin
+val p: String by lazy { // the value is computed only on first access
+    // compute the string
+}
+```
+
+## Extension functions
+```kotlin
+fun String.spaceToCamelCase() { ... }
+
+"Convert this to camelcase".spaceToCamelCase()
+```
+
+## Try-catch expression
+```kotlin
+fun test() {
+    val result = try {
+        count()
+    } catch (e: ArithmeticException) {
+        throw IllegalStateException(e)
+    }
+
+    // Working with result
+}
+```
+
+## Single-expression functions
+```kotlin
+fun theAnswer() = 42
+```
+
+the same as
+```kotlin
+fun theAnswer(): Int {
+    return 42
+}
+```
+
+## Call multiple methods on an object instance (with)
+```kotlin
+class Turtle {
+    fun penDown()
+    fun penUp()
+    fun turn(degrees: Double)
+    fun forward(pixels: Double)
+}
+
+val myTurtle = Turtle()
+with(myTurtle) { //draw a 100 pix square
+    penDown()
+    for (i in 1..4) {
+        forward(100.0)
+        turn(90.0)
+    }
+    penUp()
+}
+```
+
+## Configure properties of an object (apply)
+
+This is useful for configuring properties that aren't present in the object constructor.
+
+```kotlin
+val myRectangle = Rectangle().apply {
+    length = 4
+    breadth = 5
+    color = 0xFAFAFA
+}
+```
+
+## Mark code as incomplete (TODO)
+
+Kotlin's standard library has a TODO() function that will always throw a NotImplementedError. 
+Its return type is Nothing so it can be used regardless of expected type. 
+There's also an overload that accepts a reason parameter:
+
+```kotlin
+fun calcTaxes(): BigDecimal = TODO("Waiting for feedback from accounting")
 ```
