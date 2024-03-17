@@ -2,6 +2,11 @@
 
 Java SE 8, 11, 17 and 21 are LTS releases
 
+* [Stack](#stack)
+* [BitSet](#bitset)
+* [Check Integer overflow](#check-integer-overflow)
+* [JVM object sizes](#jvm-object-sizes)
+* [Bitwise Operators](#bitwise-operators)
 * [Most Important JVM Parameters](#most-important-jvm-parameters)
 * [Java 8 features](#java-8-features)
 * [Java 9 features](#java-9-features)
@@ -17,6 +22,151 @@ Java SE 8, 11, 17 and 21 are LTS releases
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
 * [Dead Code Elimination](#dead-code-elimination)
+
+## Stack
+
+Each Java thread has its own stack which is typically 1 MB. (64k is the least stack space allowed in JVM).
+
+## BitSet
+To store and manipulate arrays of bits, one might argue that we should use boolean[] as our data structure. 
+At first glance, that might seem a reasonable suggestion.
+However, each boolean member in a boolean[] usually consumes one byte instead of just one bit.
+[BitSet](https://www.baeldung.com/java-bitset)
+
+```java
+// This will create a BitSet instance with a long[] of size one. Of course, it can automatically grow this array if needed.
+BitSet bitSet = new BitSet();
+// Here, the internal array will have enough elements to hold 100,000 bits.
+BitSet bitSet = new BitSet(100_00);
+bitSet.set(10);
+bitSet.set(20, 30, false);
+bitSet.clear(42);
+bitSet.clear(); // clear all bitset
+bitSet.get(42);
+bitSet.flip(42);
+```
+
+## Check Integer overflow
+Using Math:
++ `toIntExact(long)`
++ `addExact(int,int)`
++ `subtractExact(int,int)`
++ `multiplyExact(int,int)`
+
+convert to long and compare result
+```java
+long test = (long)x+y;
+if (test > Integer.MAX_VALUE || test < Integer.MIN_VALUE)
+   // Overflow!
+```
+
+
+
+
+## JVM object sizes
+add
+```xml
+<dependency>
+    <groupId>org.openjdk.jol</groupId>
+    <artifactId>jol-core</artifactId>
+    <version>0.10</version>
+</dependency>
+```
+
+```java
+System.out.println(VM.current().details());
+/*
+# Running 64-bit HotSpot VM.
+# Using compressed oop with 3-bit shift.
+# Using compressed klass with 3-bit shift.
+# Objects are 8 bytes aligned.
+# Field sizes by type: 4, 1, 1, 2, 2, 4, 4, 8, 8 [bytes]
+# Array element sizes: 4, 1, 1, 2, 2, 4, 4, 8, 8 [bytes]  
+ */
+```
+In the first few lines, we can see some general information about the VM. After that, we learn about object sizes:
+
++ Java references consume 4 bytes, booleans/bytes are 1 byte, chars/shorts are 2 bytes, ints/floats are 4 bytes, and finally, longs/doubles are 8 bytes
++ These types consume the same amount of memory even when we use them as array elements
++ So, in the presence of compressed references, each boolean value takes 1 byte. Similarly, each boolean in a boolean[] consumes 1 byte. However, alignment paddings and object headers can increase the space consumed by boolean and boolean[] as we’ll see later.
+
+```java
+class BooleanWrapper {
+    private boolean value;
+}
+
+System.out.println(ClassLayout.parseClass(BooleanWrapper.class).toPrintable());
+/*
+OFFSET  SIZE      TYPE DESCRIPTION                               VALUE
+   0    12           (object header)                           N/A
+   12     1   boolean BooleanWrapper.value                      N/A
+   13     3           (loss due to the next object alignment)
+Instance size: 16 bytes
+Space losses: 0 bytes internal + 3 bytes external = 3 bytes total
+ */
+```
+
+The BooleanWrapper layout consists of:
+
++ 12 bytes for the header, including two mark words and one klass word. The HotSpot JVM uses the mark word to store the GC metadata, identity hashcode and locking information. Also, it uses the klass word to store class metadata such as runtime type checks
++ 1 byte for the actual boolean value
++ 3 bytes of padding for alignment purposes
+
+By default, object references should be aligned by 8 bytes. 
+Therefore, the JVM adds 3 bytes to 13 bytes of header and boolean to make it 16 bytes.
+
+```java
+boolean[] value = new boolean[3];
+System.out.println(ClassLayout.parseInstance(value).toPrintable());
+```
+
+## Bitwise Operators 
+Bitwise operators work on binary digits or bits of input values. 
+We can apply these to the integer types –  long, int, short, char, and byte.
+**bitwise operators always evaluate both operands.**
+Bitwise operators work on a binary equivalent of decimal numbers and perform operations on them bit by bit as per the given operator:
+
+Finally, the result `0111` will be converted back to decimal which is equal to `7`:
+```java
+/*
+0110
+0101
+-----
+0111
+ */
+int result = 6 | 5;
+```
+
++ `OR (|)` - gives back 1 if either of them is 1.
++ `AND (&)` - gives back 1 if both are 1, otherwise it returns 0.
++ `XOR (^)` - gives back 1 if both the compared bits are different.
++ `COMPLEMENT (~)` - negation of each bit of the input value. It takes only one integer and it’s equivalent to the ! operator. 
+
+Bitwise Operator Table
+```
+A	B	A|B	A&B	A^B	~A
+0	0	0	0	0	1
+1	0	1	0	1	0
+0	1	1	0	1	1
+1	1	1	1	0	0
+```
+
+Bitwise Shift Operators
+
++ `Signed Left Shift [<<]` - shifts the bits to the left by the number of times specified by the right side of the operand. After the left shift, the empty space in the right is filled with 0.
+shifting a number by one is equivalent to multiplying it by 2, or, in general, **left shifting a number by n positions is equivalent to multiplication by 2^n**.
+```java
+int value = 12;
+int leftShift = value << 2;
+assertEquals(48, leftShift);
+```
+
++ `Signed Right Shift [>>]` - The right shift operator shifts all the bits to the right. The empty space in the left side is filled depending on the input number:
++ When an input number is negative, where the leftmost bit is 1, then the empty spaces will be filled with 1
++ When an input number is positive, where the leftmost bit is 0, then the empty spaces will be filled with 0
+
++ `Unsigned Right Shift [>>>]` - The only difference is that the empty spaces in the left are filled with 0 irrespective of whether the number is positive or negative. Therefore, the result will always be a positive integer.
+
 
 ## Most Important JVM Parameters
 
