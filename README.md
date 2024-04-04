@@ -24,3 +24,4 @@
 * [Scala](./Scala/Scala.md)
 * [Python](./Python/Python.md)
 * [Kotlin](./Kotlin/Kotlin.md)
+* [CURL](./Curl/Curl.md)
