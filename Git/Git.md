@@ -5,6 +5,8 @@
 [Check branch contains commit](#check-branch-contains-commit)
 [Pull force](#pull-force)
 [Show commit](#show-commit)
+[Upload changes from branch](#upload-changes-from-branch)
+[Remove commit](#remove-commit)
 
 ### Rename a Local and Remote Git Branch
 
@@ -65,4 +67,23 @@ git reset --hard origin/master
 ### Show commit
 ```bash
 git show <commit-id>
+```
+
+### Upload changes from branch
+```bash
+git pull origin develop
+```
+
+```bash
+git pull --rebase origin develop
+```
+
+### Remove commit
+Remove last commit
+```shell
+git reset --hard HEAD^
+```
+Remove 2 last commits
+```shell
+git reset --hard HEAD~2
 ```
