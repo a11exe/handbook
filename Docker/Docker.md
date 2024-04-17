@@ -14,8 +14,11 @@
 * [List processes running in container](#list-processes-running-in-container)
 * [Delete container](#delete-container)
 * [Delete image](#delete-image)
+* [Build image from file](#build-image-from-file)
 * [Ports exposing](#ports-exposing)
 * [Run app with params](#run-app-with-params)
+* [Run specific file](#run-specific-file)
+* [See docker image content](#see-docker-image-content)
 
 ### Check is docker working
 ```
@@ -75,7 +78,7 @@ $ docker images
 
 ### Get logs
 ```
-$ docker container logs [NAME]
+$ docker logs [NAME] -f
 ```
 
 ### List processes running in container
@@ -96,6 +99,11 @@ $ docker rm <container id>
 ### Delete image
 ```
 $ docker rmi <image-id>
+```
+
+### Build image from file
+```shell
+docker build -t soapui-base:latest -f base.Dockerfile .
 ```
 
 ### Ports exposing
@@ -123,4 +131,15 @@ mongodb:
   container_name: mongo
   image: latest
   command: mongod --httpinterface --rest
+```
+
+### Run specific file
+`-d` - detached
+```shell
+docker-compose -f /data/......./docker-compose.yml up -d 
+```
+
+### See docker image content
+```shell
+docker run -it image_name sh
 ```
