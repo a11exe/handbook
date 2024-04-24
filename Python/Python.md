@@ -263,6 +263,10 @@ myMap = { "alice": 80, "bob": 90 }
 
 myMap = { i: i*3 for i in range(3) }
 
+val = myMap["xx"] # KeyError if key is absent
+print(map.get("xx")) # None
+print(map.get("xx", "default")) # Default value
+
 # looping through map
 for key in myMap:
     print(key, myMap[key])
