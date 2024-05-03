@@ -7,6 +7,9 @@
 [Show commit](#show-commit)
 [Upload changes from branch](#upload-changes-from-branch)
 [Remove commit](#remove-commit)
+[Show config](#show-config)
+[AutoCRLF](#autocrlf)
+
 
 ### Rename a Local and Remote Git Branch
 
@@ -86,4 +89,64 @@ git reset --hard HEAD^
 Remove 2 last commits
 ```shell
 git reset --hard HEAD~2
+```
+
+### Show config
+
+shows all inherited values from: system, global and local
+```shell
+git config -l
+```
+
+### AutoCRLF
+Windows uses both a carriage-return character and a linefeed character for newlines in its files, 
+whereas macOS and Linux systems use only the linefeed character. 
+This is a subtle but incredibly annoying fact of cross-platform work; 
+many editors on Windows silently replace existing LF-style line endings with CRLF, 
+or insert both line-ending characters when the user hits the enter key.
+
+Git can handle this by auto-converting CRLF line endings into LF when you add a file to the index, 
+and vice versa when it checks out code onto your filesystem. 
+You can turn on this functionality with the `core.autocrlf` setting. 
+If you’re on a Windows machine, set it to `true` this converts LF endings into CRLF when you check out code:
+```shell
+$ git config --global core.autocrlf true
+```
+```shell
+add, commit                         checkout
+-------------->    Git database  -------------->
+ (CRLF -> LF)           (LF)      (LF -> CRLF)
+```
+
+
+If you’re on a Linux or macOS system that uses LF line endings, then you don’t want Git to automatically convert them 
+when you check out files; however, if a file with CRLF endings accidentally gets introduced, then you may want Git to fix it. 
+You can tell Git to convert CRLF to LF on commit but not the other way around by setting core.autocrlf to input:
+
+```shell
+$ git config --global core.autocrlf input
+```
+```shell
+add, commit                         checkout
+-------------->    Git database  -------------->
+ (CRLF -> LF)           (LF)      (no convertation)
+```
+
+If you’re a Windows programmer doing a Windows-only project, then you can turn off this functionality, 
+recording the carriage returns in the repository by setting the config value to false:
+
+```shell
+$ git config --global core.autocrlf false
+```
+```shell
+  add, commit                             checkout
+-------------->    Git database       -------------->
+(no convertation) (CRLF and/or LF)    (no convertation)
+```
+
+If you're working on Windows with shell scripts, you can add `.gitattributes` file like this:
+```shell
+docker-compose.yml text eol=lf
+Dockerfile eol=lf
+*.sh text eol=lf
 ```
