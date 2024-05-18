@@ -100,7 +100,11 @@ match color:
         print('drive')
     case _:
         print('wrong value')
+
+# short if
+print("A") if a > b else print("B")
 ```
+
 
 ## String functions
 + `len()` - string length
