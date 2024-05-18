@@ -33,8 +33,8 @@ postgres=# SHOW hba_file;
 ```
 
 ### Create database and user
-```
-sudo -u postgres psql
+```shell
+sudo -u postgres psql #  sudo psql -U alabra -d postgres
 postgres=# create database mydb;
 postgres=# create user myuser with encrypted password 'mypass';
 postgres=# grant all privileges on database mydb to myuser;
@@ -383,7 +383,10 @@ The BRIN index is also known as Block Range Index. It stores the summary of bloc
 Once a BRIN index is implemented, it uses the BRIN values for validating each page. 
 In case the page is not modified, its BRIN value remains the same.
 
-It is useful for extensive data such as timestamps and temperature sensor data. It also uses less storage compared to a B-tree index.
+It is **useful for extensive data such as timestamps** and temperature sensor data. 
+It also uses less storage compared to a B-tree index.
+
+[BRIN Index for PostgreSQL: Don’t Forget the Benefits](https://www.percona.com/blog/brin-index-for-postgresql-dont-forget-the-benefits/)
 
 ## Why Is My Query Not Using an Index?
 There are many reasons why the Postgres planner can choose to not use an index. 
