@@ -91,6 +91,13 @@ Remove 2 last commits
 git reset --hard HEAD~2
 ```
 
+if reset --hard doesn't work
+```shell
+git gc
+git reset
+git reset --hard <target_branch>
+```
+
 ### Show config
 
 shows all inherited values from: system, global and local
