@@ -1,5 +1,6 @@
 # Postgres
 
+* [Start postgres in docker](#start-postgres-in-docker)
 * [Check version](#check-version)
 * [Find config files](#find-config-files)
 * [Create database and user](#create-database-and-user)
@@ -19,6 +20,11 @@
 * [Managing and Maintaining Indexes](#managing-and-maintaining-indexes)
 * [View](#view)
 * [Performing settings](#performing-settings)
+
+### Start postgres in docker
+```shell
+docker run --name habr-pg-13.3 -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres:13.3
+```
 
 ### Check version
 
