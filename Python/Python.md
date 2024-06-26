@@ -1,4 +1,5 @@
 # Python
++ [Run](#run)
 + [Variables](#variables)
 + [Input & output](#input--output)
 + [Logical operators](#logical-operators)
@@ -14,6 +15,13 @@
 + [Heap](#heap)
 + [Functions](#functions)
 + [Class](#class)
++ [csv to sql](#csv-to-sql)
+
+## Run
+```shell
+python3 ./Python/test.pl.py
+```
+
 
 ## Variables
 ```python
@@ -373,4 +381,24 @@ class MyClass:
 
     def getLength(self):
         return self.size
+```
+
+## Csv to Sql
+```python
+# https://konbert.com/convert/excel/to/csv
+import uuid;
+
+f = open("data.csv", "r")
+fr = open("result.sql", "w", encoding = "utf-8")
+for str in f:
+
+    stringData = str.split(';')
+    stringData = ["'{0}'".format(element) for element in stringData]
+    stringData = [element.replace('\n', '') for element in stringData]
+    formattedString = ", ".join(stringData)
+    formattedString.replace('\n', ' ').replace('\r', '')
+
+    fr.write(f"('{uuid.uuid4()}', {formattedString}),\n")
+
+f.close()
 ```
