@@ -11,6 +11,7 @@
 + [Deque](#deque)
 + [HashSet](#hashset)
 + [HashMap](#hashmap)
++ [DefaultDict](#defaultdict)
 + [Tuples](#tuples)
 + [Heap](#heap)
 + [Functions](#functions)
@@ -115,7 +116,7 @@ print("A") if a > b else print("B")
 
 
 ## String functions
-+ `len()` - string length
++ `len(str)` - string length
 
 ```python
 # string immutable
@@ -288,6 +289,13 @@ for val in myMap.values():
     
 for key, value in myMap.items():
     print(key, value)
+
+if key in dic.keys()
+```
+list (array) can't be used as key in hashmap.
+A list can be converted to a tuple, which can be used as a dict key: e.g.
+```python
+d = {tuple([1,2,3]): 'value'}
 ```
 
 ## Tuples
@@ -304,6 +312,33 @@ mySet = set()
 mySet.add((1,2))
 print((1,2) in mySet)
 ```
+
+## DefaultDict
+Return a new dictionary-like object. defaultdict is a subclass of the built-in dict class.
+Provides default value for missing key.
+
+Using list as the default_factory, it is easy to group a sequence of key-value pairs into a dictionary of lists:
+```python
+s = [('yellow', 1), ('blue', 2), ('yellow', 3), ('blue', 4), ('red', 1)]
+d = defaultdict(list)
+for k, v in s:
+    d[k].append(v)
+
+sorted(d.items())
+# [('blue', [2, 4]), ('red', [1]), ('yellow', [1, 3])]
+```
+
+Setting the default_factory to int makes the defaultdict useful for counting (like a bag or multiset in other languages):
+```python
+s = 'mississippi'
+d = defaultdict(int)
+for k in s:
+    d[k] += 1
+
+sorted(d.items())
+# [('i', 4), ('m', 1), ('p', 2), ('s', 4)]
+```
+
 
 ## Heap
 under the hood are arrays
