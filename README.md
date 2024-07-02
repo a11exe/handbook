@@ -26,4 +26,5 @@
 * [Kotlin](./Kotlin/Kotlin.md)
 * [CURL](./Curl/Curl.md)
 * [Time](./Time/JavaTime.md)
+* [Encodings](./Encodings/Encodings.md)
 * [Microservices](./Microservices/Microservices.md)
