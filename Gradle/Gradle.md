@@ -4,6 +4,7 @@
 * [Custom task](#custom-task)
 * [Test task properties](#test-task-properties)
 * [Run a Java main Method](#run-a-java-main-method)
+* [Skip tests](#skip-tests)
 
 ## Fat jar
 Basically, a fat jar (also known as uber-jar) is a self-sufficient archive which contains both classes and dependencies needed to run an application.
@@ -69,4 +70,9 @@ task runWithJavaExec(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = javaMainClass
 }
+```
+
+## Skip tests
+```shell
+gradle build -x test
 ```
