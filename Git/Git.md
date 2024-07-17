@@ -9,6 +9,7 @@
 [Remove commit](#remove-commit)
 [Show config](#show-config)
 [AutoCRLF](#autocrlf)
+[Task list between tags](#task-list-between-tags)
 
 
 ### Rename a Local and Remote Git Branch
@@ -156,4 +157,14 @@ If you're working on Windows with shell scripts, you can add `.gitattributes` fi
 docker-compose.yml text eol=lf
 Dockerfile eol=lf
 *.sh text eol=lf
+```
+
+### Task list between tags
+```shell
+echo 'Please enter start tag'
+read startTag
+echo 'Please enter end tag'
+read endTag
+git log --oneline $startTag..$endTag | grep -o MYTAG-[0-9]* | sort --unique
+echo 'Task were showed'
 ```
