@@ -12,13 +12,14 @@
 * [Complex example](#complex-example)
 * [Generate dates](#generate-dates)
 * [Start and end of day](#start-and-end-of-day)
+* [Test jsonb query](#test-jsonb-query)
 
-### Data Type Formatting
+## Data Type Formatting
 ```
 SELECT coalesce(type, 'null) || coalesce(to_char(oper_date, 'YYYY-mm-dd HH:MM:SS'), 'null') || md5(hash)::uuid || sum::text) from operations;
 ```
 
-### Copy a Table
+## Copy a Table
 Creating new tables that would either have the same data or data of the same table with certain operations performed on them.
 
 We will discuss the following 3 cases:
@@ -42,7 +43,7 @@ Copy the structure of a table into a new table, without data, including all keys
 CREATE TABLE new_table_name (LIKE old_table_name INCLUDING ALL);
 ```
 
-### Transactions
+## Transactions
 The `BEGIN` keyword is used to start a transaction block.
 The `COMMIT` keyword saves changes to the database.
 Please note: The `COMMIT` and `END` keywords are same.
@@ -64,7 +65,7 @@ BEGIN;
 COMMIT;
 ```
 
-### Insert with select
+## Insert with select
 ```
 insert into lesson (id, "name", description, link, created_at, time_seconds, last_updated_at, enabled)
 	select 	nextval(pg_get_serial_sequence('lesson', 'id')) as id,
@@ -79,7 +80,7 @@ insert into lesson (id, "name", description, link, created_at, time_seconds, las
 	where l.id = 1;
 ```
 
-### Stored procedure
+## Stored procedure
 ```
 create or replace procedure transfer(
    sender int,
@@ -107,7 +108,7 @@ Calling a stored procedure
 call stored_procedure_name(argument_list);
 ```
 
-### Block structure
+## Block structure
 The following example illustrates a very simple block. It is called an anonymous block.
 ```
 do $$ 
@@ -124,7 +125,7 @@ begin
 end first_block $$;
 ```
 
-### IF Statement
+## IF Statement
 ```
 DO $$
 DECLARE
@@ -141,7 +142,7 @@ BEGIN
 END $$;
 ```
 
-### For Loops
+## For Loops
 PostgreSQL provides the for loop statements to iterate over a range of integers or over a result set or over the result set of a dynamic query.
 
 ```
@@ -181,7 +182,7 @@ $$;
 
 
 
-### With clause
+## With clause
 It helps in breaking down complicated and large queries into simpler forms.
 These statements are often referred to as common table expressions or CTEs. 
 The CTEs are like temporary tables that exist only during the execution of the query.
@@ -441,4 +442,35 @@ FROM generate_series
 ```
 select date_trunc('day', val) as start_day,
        (date_trunc('day', val) + interval '1 day' - interval '1 second') as end_day
+```
+
+## Test jsonb query
+```sql
+do
+$$
+declare
+  _iterations INT = 1000;
+  _uuid uuid;
+  _id TEXT;
+  _uri text;
+  _channel text;
+  _system text;
+  _start TIMESTAMP;
+  _end TIMESTAMP;
+begin
+  _start := clock_timestamp();
+  select id
+    into _uuid
+    from message_log where uri = 'CreateMessage'
+    limit 1;
+  for i in 1.._iterations loop
+    select id, uri, content #>> '{Request, Channel}', system
+    into _id, _uri, _channel, _system
+    from message_log where id = _uuid;
+--    raise notice 'Data: % % %', _id, _uri, _system;
+     end loop;
+   _end := clock_timestamp();
+   raise notice 'Execution time of % iterations in ms = %', _iterations, 1000 * (extract(epoch from _end - _start));
+end;
+$$;
 ```
