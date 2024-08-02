@@ -12,6 +12,7 @@
 * [Injecting prototype beans into a singleton instance](#injecting-prototype-beans-into-a-singleton-instance)
 * [Properties file location](#properties-file-location)
 * [Get pid after it starts](#Get-pid-after-it-starts)
+* [Spring retry](#spring-retry)
 
 ## ShedLock
 Spring provides an easy way to implement API for scheduling jobs. It works great until we deploy multiple instances of our application.
@@ -690,4 +691,17 @@ spring:
   pid:
     file: /var/run/myapp.pid # Location of the PID file to write (if ApplicationPidFileWriter is used).
     fail-on-write-error: true # Fails if ApplicationPidFileWriter is used but it cannot write the PID file.
+```
+
+## Spring retry
+[https://www.baeldung.com/spring-retry](https://www.baeldung.com/spring-retry)
+Spring Retry provides an ability to automatically re-invoke a failed operation. 
+This is helpful where the errors may be transient (like a momentary network glitch).
+```java
+@Service
+public interface MyService {
+
+    @Retryable(retryFor = SQLException.class, maxAttempts = 2, backoff = @Backoff(delay = 100))
+    void retryServiceWithCustomization(String sql) throws SQLException;
+}
 ```
