@@ -20,6 +20,8 @@
 * [Managing and Maintaining Indexes](#managing-and-maintaining-indexes)
 * [View](#view)
 * [Performing settings](#performing-settings)
+* [Locks](#locks)
+* [Terminate process](#terminate-process)
 
 ### Start postgres in docker
 ```shell
@@ -582,5 +584,18 @@ The `log_min_duration_statement` allows PostgreSQL to log statements that take l
 By default, this feature is disabled, hence the value of -1 on my local PostgreSQL database instance.
 
 On the other hand, Aiven uses a value of 1000 ms, meaning that every SQL query that takes longer than a second will be printed in the database log for us to investigate it.
+
+## Locks
+`select pid, * from pg_catalog.pg_locks`;
+
+## Terminate process
+Find active processes
+`select * from pg_stat_activity where state = 'active'`
+
+Send request to cancel the process
+`select pg_cancel_backend(<pid of the process>)`
+
+If process cannot be killed, try
+`select pg_terminate_backend(<pid of the process>)`
 
 
