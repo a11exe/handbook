@@ -10,6 +10,7 @@
 [Show config](#show-config)
 [AutoCRLF](#autocrlf)
 [Task list between tags](#task-list-between-tags)
+[Move commit to another branch](#move-commit-to-another-branch)
 
 
 ### Rename a Local and Remote Git Branch
@@ -167,4 +168,15 @@ echo 'Please enter end tag'
 read endTag
 git log --oneline $startTag..$endTag | grep -o MYTAG-[0-9]* | sort --unique
 echo 'Task were showed'
+```
+
+### Move commit to another branch
+use commit hash
+```shell
+git cherry-pick 707e522 
+```
+
+get changes without commiting
+```shell
+git cherry-pick -n 707e522
 ```
