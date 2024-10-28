@@ -1,6 +1,7 @@
 # Microservices
 
 * [Ansible vault](#ansible-vault)
+* [Encrypt, decrypt base64](#encrypt-decrypt-base64)
 
 ## Ansible vault
 Ansible Vault encrypts variables and files so you can protect sensitive content such as passwords or keys 
@@ -41,3 +42,19 @@ Using password file
 ```shell
 sudo ansible-playbook -i ansible/inventory sample-playbook.yaml –vault-pass-file ~/secrets/vault_pass.txt
 ```
+
+## Encrypt, decrypt base64
+You can encrypt and decrypt from base64 using chrome console.
+
+Encoding to base64 is done with the btoa command
+```shell
+btoa("This is a test.")
+> "VGhpcyBpcyBhIHRlc3Qu"
+```
+
+To decode a base64 encoded string, use the atob command
+```shell
+atob("VGhpcyBpcyBhIHRlc3Qu")
+> "This is a test."
+```
+
