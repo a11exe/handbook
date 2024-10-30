@@ -2,6 +2,7 @@
 
 * [Terminal](#terminal)
 * [Brew](#brew)
+* [Find file](#find-file)
 
 ## Terminal
 
@@ -17,3 +18,13 @@
 `brew list --versions git`	List the installed versions of package
 `brew services` List running services
 `brew services stop postgresql@14` Stop service
+
+## Find file
+```
+find / -name abc.dmg 2>/dev/null
+```
+
+## Add path
+```
+export PATH=/opt/homebrew/Cellar/postgresql@14/14.8_2/bin:$PATH
+```
