@@ -1,7 +1,9 @@
 # Kotlin
 
++ [Decompile](#decompile)
 + [Input & output](#input--output)
 + [Functions](#functions)
++ [Infix Notation](#infix-notation)
 + [Variables](#variables)
 + [Null safety](#null-safety)
 + [Classes and instances](#classes-and-instances)
@@ -17,6 +19,14 @@
 + [Call multiple methods on an object instance (with)](#call-multiple-methods-on-an-object-instance-with)
 + [Configure properties of an object (apply)](#configure-properties-of-an-object-apply)
 + [Mark code as incomplete (TODO)](#mark-code-as-incomplete-todo)
++ [Callbacks](#callbacks)
++ [Coroutines](./Coroutines.md)
++ [Companion Object](#companion-object)
++ [Object](#object)
+
+## Decompile
+
+Tools → Kotlin → Show Kotlin Bytecode → Decompile
 
 ## Input & output
 
@@ -35,6 +45,57 @@ fun sum(a: Int, b: Int): Int {
 }
 
 fun sum(a: Int, b: Int) = a + b
+```
+
+## Infix Notation
+Kotlin allows some functions to be called without using the period and brackets. These are called infix methods, and their use can result in code that looks much more like a natural language.
+
+This is most commonly seen in the inline Map definition:
+
+```kotlin
+map(
+  1 to "one",
+  2 to "two",
+  3 to "three"
+)
+```
+
+Writing an infix function is a simple case of following three rules:
+
++ The function is either defined on a class or is an extension method for a class
++ The function takes exactly one parameter
++ The function is defined using the infix keyword
+```kotlin
+class Assertion<T>(private val target: T) {
+    infix fun isEqualTo(other: T) {
+        Assert.assertEquals(other, target)
+    }
+
+    infix fun isDifferentFrom(other: T) {
+        Assert.assertNotEquals(other, target)
+    }
+}
+```
+
+using
+```kotlin
+val result = Assertion(5)
+
+result isEqualTo 5 // This passes
+result isEqualTo 6 // This fails the assertion
+result isDifferentFrom 5 // This also fails the assertion
+```
+
+**Note that infix functions can also be written as extension methods to existing classes.**
+```kotlin
+infix fun String.substringMatches(r: Regex) : List<String> {
+    return r.findAll(this)
+      .map { it.value }
+      .toList()
+}
+
+val matches = "a bc def" substringMatches ".*? ".toRegex()
+Assert.assertEquals(listOf("a ", "bc "), matches)
 ```
 
 ## Variables
@@ -72,6 +133,11 @@ for (item in listWithNulls) {
 }
 // If either `person` or `person.department` is null, the function is not called:
 person?.department?.head = managersPool.getManager()
+```
+
+default value
+```kotlin
+val age: Int = nullableAge ?: 30
 ```
 
 Elvis operator
@@ -428,4 +494,94 @@ There's also an overload that accepts a reason parameter:
 
 ```kotlin
 fun calcTaxes(): BigDecimal = TODO("Waiting for feedback from accounting")
+```
+
+## Callbacks
+Callback functions in Kotlin play a core role in administering asynchronous techniques in our programs. 
+With a callback function, we can execute code pieces asynchronously, as well as execute a certain piece of code when a particular event occurs.
+
+Let’s consider an example where we want to pull some data from the server off the main thread. 
+To achieve this, we can use a callback function that executes the remote loading of users from a server asynchronously:
+
+```kotlin
+data class User(var firstName: String, var lastName: String)
+```
+
+```kotlin
+suspend fun loadUsersFromServer(callback: (List<User>) -> Unit) {
+    delay(5000)
+    val users = listOf(User("Flore", "P"), User("Nappy", "Sean"), User("Ndole", "Paul"))
+    callback(users)
+}
+```
+
+```kotlin
+var listofUsers = emptyList<User>()
+suspend fun executeLoading(){
+    loadUsersFromServer { users ->
+        listofUsers = users
+    }
+}
+```
+Now, a complete test of these functions will look like this:
+```kotlin
+@Test
+fun `asynchronous callback to load remote data`(){
+    runBlocking{
+        executeLoading()
+    }
+    assertEquals(3, listofUsers.size)
+    assertEquals("Flore", listofUsers[0].firstName)
+    assertEquals("Sean", listofUsers[1].lastName)
+    assertEquals("Ndole Paul", "${listofUsers[2].firstName} ${listofUsers[2].lastName}" )
+}
+```
+
+## Companion Object
+
+There are times we need to use a companion object to define class members that are going to be used independently of any instance of that class. 
+The Kotlin compiler guarantees we will have one and only one instance of a companion object. 
+For those of us with a background in Java and C#, a companion object is similar to static declarations.
+
+defining
+```kotlin
+class ClassName {
+    companion object {
+        const val propertyName: String = "Something..."
+        fun funName() {
+            //...
+        }
+    }
+}
+```
+
+using
+```kotlin
+val property = ClassName.propertyName
+ClassName.funName()
+```
+
+So, if we need a Java-interoperable code, the solution is @JvmStatic functions and @JvmStatic properties. 
+By annotating a companion object’s members with @JvmStatic, we will gain better Java interoperability:
+
+```kotlin
+companion object {
+    @JvmStatic
+    val propertyName: String = "Something..."
+}
+```
+
+## Object
+
+Object instead represents a single static instance, and can never have any more or any less than this one instance.
+
+This is useful for various techniques, including singleton objects and simple packaging up of functionality for encapsulation:
+```kotlin
+object SimpleSingleton {
+    val answer = 42;
+    fun greet(name: String) = "Hello, $name!"
+}
+
+assertEquals(42, SimpleSingleton.answer)
+assertEquals("Hello, world!", SimpleSingleton.greet("world"))
 ```
