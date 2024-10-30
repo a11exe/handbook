@@ -11,9 +11,12 @@
 * [List images](#list-locally-stored-images)
 * [Get logs](#get-logs)
 * [Stats](#stats)
+* [Inspect](#inspect)
 * [List processes running in container](#list-processes-running-in-container)
 * [Delete container](#delete-container)
 * [Delete image](#delete-image)
+* [Volume](#volume)
+* [Network](#network)
 * [Build image from file](#build-image-from-file)
 * [See docker image content](#see-docker-image-content)
 * [Docker file definition](#docker-file-definition)
@@ -23,26 +26,30 @@
 
 ### Check is docker working
 ```
-$ sudo docker run hello-world 
+$ docker run hello-world 
 ```
 ### Search image
 ```
-$ sudo docker search nginx
+$ docker search nginx
 ```
 ### Download image from hub.docker.com
 ```
-$ sudo docker pull nginx
+$ docker pull nginx
 ```
 
 ### Create container from image 
 forward port and dir
 ```
-$ sudo docker run -d --name nginx -p 80:80 -v /var/www/html:/usr/share/nginx/html nginx 
+$ docker run -d --name nginx -p 80:80 -v /var/www/html:/usr/share/nginx/html nginx 
+```
+if container stopped, then use
+```
+$ docker start nginx
 ```
 
 ### Show list of running containers
 ```
-$ sudo docker ps
+$ docker ps
 ```
 OR
 ```
@@ -50,12 +57,12 @@ $ docker container ls
 ```
 Show list of running and exited containers
 ```
-$ sudo docker ps -a
+$ docker ps -a
 ```
 
 ### Run bash inside container
 ```
-$ sudo docker exec -it nginx bash
+$ docker exec -it nginx bash
 ```
 
 ### Stop container
@@ -84,12 +91,24 @@ $ docker logs [NAME] -f
 
 ### List processes running in container
 ```
-$ docker container top [NAME]
+$ docker top [NAME]
 ```
 
 ### Stats
+Describe container memory usage
 ```
-$ docker container stats [NAME]
+$ docker stats [NAME]
+```
+
+### Inspect
+provides detailed information on constructs controlled by Docker
+```
+$ docker inspect image-name
+$ docker inspect 
+```
+For the most part, you can pick out any field from the JSON in a fairly straightforward manner.
+```
+docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $INSTANCE_ID
 ```
 
 ### Delete container
@@ -101,6 +120,59 @@ $ docker rm <container id>
 ```
 $ docker rmi <image-id>
 ```
+
+### Volume
+```
+docker volume create my-vol
+docker volume ls
+docker volume inspect my-vol
+docker volume rm my-vol
+```
+If you start a container with a volume that doesn't yet exist, Docker creates the volume for you.
+
+Docker volume and Bind mount are the docker components. 
+Using bind mounts, you may mount a file or directory from your host computer onto your container and access it using its absolute path.
+Conversely, when a volume is used, Docker makes a new directory in the host machine’s storage directory and keeps it updated.
+
+**Difference between Docker volume and Bind mount**
+
+| Docker volume  | Bind mount  |
+|---|---|
+|  Docker volume is the recommended method for storing data created and utilized by Docker containers is to use volumes. | Bind mount has existed from Docker’s early versions. Comparatively speaking, bind mounts are less useful than volumes. |
+| All you need is the volume name to mount it.  | When using bind mounts for mounting, a route to the host computer must be supplied. |
+| In /var/lib/docker/volumes, the volumes are stored.  | On the host computer, a bind mount can be located anywhere. |
+
+Docker volume is the recommended method for storing data created and utilized by Docker containers is to use volumes.
+
+usage
+```
+docker run -d \                                                                                                
+         -e POSTGRES_USER=postgres \
+         -e POSTGRES_PASSWORD=postgres \
+         -e POSTGRES_DB=postgres \
+         -p 5432:5432 \
+         --volume postgres-data:/var/lib/postgresql/data \
+         postgres:13
+```
+
+### Network
+You can create custom, user-defined networks, and connect multiple containers to the same network.
+Once connected to a user-defined network, containers can communicate with each other using container IP addresses or container names.
+
+```
+docker network create -d bridge my-net
+docker run --network=my-net -itd --name=container3 busybox
+```
+By default, when you create or run a container using `docker create` or `docker run`, 
+containers on bridge networks don't expose any ports to the outside world. Use the `--publish` or `-p` flag 
+to make a port available to services outside the bridge network. 
+This creates a firewall rule in the host, mapping a container port to a port on the Docker host to the outside world.
+
+`-p 8080:80`	- Map port 8080 on the Docker host to TCP port 80 in the container.
+
+If you want to make a container accessible to other containers, it isn't necessary to publish the container's ports. 
+You can enable inter-container communication by connecting the containers to the same network, usually a bridge network.
+
 
 ### Build image from file
 ```shell
@@ -204,6 +276,9 @@ LABEL version="1.0" maintainer="Adrian"
 By default, Docker runs containers with a root user, which can create a security risk and cause permission issues 
 when accessing files and directories. Hence, the container user should be a non-root user with appropriate permissions.
 
+```shell
+USER spring:spring
+```
 
 ```shell
 FROM alpine:latest
@@ -225,6 +300,10 @@ ARG VERSION=latest
 $ docker build --build-arg DOCKER_USER=baeldung -t dynamicuser .
 ```
 
+You can use an ARG or an ENV instruction to specify variables that are available to the RUN instruction. 
+Environment variables defined using the ENV instruction always override an ARG instruction of the same name.
+
+
 ### Example Docker file
 ```shell
 FROM adoptopenjdk/openjdk11:x86_64-alpine-jdk-11.0.17_8
@@ -243,7 +322,14 @@ ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /$SERVICE_NAME.jar"]
 
 ## Docker compose
 
+You can control the order of service startup and shutdown with the `depends_on` attribute.
+`depends_on` doesn't wait for other container starts, it's just a order of startup.
+You can use `restart: on_failure` to restart a dependent container.
 
+Run a specific container
+```
+docker compose up postgres
+```
 
 ```shell
 version: "3.7"
