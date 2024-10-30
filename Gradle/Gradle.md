@@ -49,6 +49,34 @@ task copyProps (dependsOn: build, type: Copy) {
 }
 ```
 
+Custom task analyze migrations
+```
+abstract class CheckDbMigrations: DefaultTask() {
+
+    @get: InputDirectory
+    lateinit var dbMigrationsDirectory: File
+
+    @TaskAction
+    fun execute() {
+        println("----------------------- Start db migration checking -------------------------")
+        val migrationsSet = HashSet<String>()
+        dbMigrationsDirectory.listFiles()?.forEach {
+            val version = it.name.substringBefore("__")
+            if (migrationsSet.contains(version)) {
+                throw IllegalArgumentException("Found duplicate migration number $version")
+            }
+            migrationsSet.add(version)
+        }
+        println("----------------------- Db migration checking finished successfully ---------")
+    }
+
+}
+
+tasks.register<CheckDbMigrations>("checkDbMigrations") {
+    dbMigrationsDirectory = file("src/main/resources/db/migration")
+}
+```
+
 ## Test task properties
 [Test task](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html)
 
