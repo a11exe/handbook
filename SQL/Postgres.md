@@ -22,6 +22,7 @@
 * [Performing settings](#performing-settings)
 * [Locks](#locks)
 * [Terminate process](#terminate-process)
+* [Check data type size](#check-data-type-size)
 
 ### Start postgres in docker
 ```shell
@@ -598,4 +599,16 @@ Send request to cancel the process
 If process cannot be killed, try
 `select pg_terminate_backend(<pid of the process>)`
 
+## Check data type size
+
+```sql
+SELECT pg_column_size(123456789112345678911111555678::numeric(30,0)) AS numeric30,
+       pg_column_size(1234567891123456789::numeric(19,0)) AS numeric19,
+       pg_column_size(123::numeric(19,0)) AS numeric3,
+       pg_column_size(1234567891123456789::bigint) AS bigint;
+
+numeric30|numeric19|numeric3|bigint
+---------|---------|--------|------
+       22|       16|       8|     8
+```
 
