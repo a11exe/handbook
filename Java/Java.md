@@ -22,6 +22,7 @@ Java SE 8, 11, 17 and 21 are LTS releases
 * [Java dynamic proxy: JDK and CGLIB](#java-dynamic-proxy)
 * [Sneaky throws](#sneaky-throws)
 * [Dead Code Elimination](#dead-code-elimination)
+* [Memory](#memory)
 
 ## Stack
 
@@ -851,3 +852,29 @@ Sample08DeadCode.benchmark         avgt    5   0,229 ± 0,018  ns/op
 Sample08DeadCode.measureCorrect    avgt    5  12,013 ± 0,047  ns/op
 Sample08DeadCode.measureIncorrect  avgt    5   0,228 ± 0,016  ns/op
 ```
+
+## Memory
+[https://www.baeldung.com/java-memory-beyond-heap](https://www.baeldung.com/java-memory-beyond-heap)
+
+We all may have noticed that when it comes to memory consumption, the memory usage of our Java applications doesn’t follow our strict instructions based on -Xmx (max heap size) options. In fact, the JVM has more memory regions than just the heap.
+The memory of the Java Virtual Machine (JVM) is divided into two main categories: heap and non-heap.
+
+Heap memory is the most well-known part of the JVM memory. It stores objects created by the application. The JVM initiates the heap at start-up. When the application creates a new instance of an object, the object resides in the heap until the application releases the instance. Then, the garbage collector (GC) frees the memory held by the instance. Hence, the heap size varies based on load, although we can configure max JVM heap size using the -Xmx option.
+
+### JVM’s Non-Heap Memory Areas
+#### Metaspace
+Metaspace is a native memory region that stores metadata for classes. When a class is loaded, the JVM allocates the metadata of the class, which is its runtime representation, into Metaspace. Whenever the class loader and all its classes are removed from the heap, then their allocation in Metaspace can be considered to be freed by GC.
+In Java versions older than 8, Metaspace is called Permanent Generation (PermGen).
+
+#### Code Cache
+The Just-In-Time (JIT) compiler stores its output in the code cache area. A JIT compiler compiles bytecode to native code for frequently executed sections, aka Hotspots.
+
+#### Thread
+The thread stack contains all local variables for each executed method and the methods the thread has called to reach the current point of execution. The thread stack is only accessible by the thread that created it.
+
+#### Garbage Collection
+Whatever algorithm we use, some amount of native memory will be allocated to the GC process, but the amount of used memory varies depending on which garbage collector is used.
+
+#### Symbol
+The JVM uses the Symbol area to store symbols such as field names, method signatures, and interned strings. In the Java development kit (JDK), symbols are stored in three different tables:
+
