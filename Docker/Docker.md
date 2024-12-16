@@ -64,6 +64,10 @@ $ docker ps -a
 ```
 $ docker exec -it nginx bash
 ```
+Run with bash
+```shell
+docker run -it --entrypoint bash nginx
+```
 
 ### Stop container
 ```
