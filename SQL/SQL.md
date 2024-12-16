@@ -3,6 +3,8 @@
 * [Data Type Formatting](#data-type-formatting)
 * [Copy a Table](#copy-a-table)
 * [Insert with select](#insert-with-select)
+* [Insert in loop](#insert-in-loop)
+* [Random from set](#random-from-set)
 * [Stored procedure](#stored-procedure)
 * [Transactions](#transactions)
 * [Block structure](#block-structure)
@@ -13,6 +15,7 @@
 * [Generate dates](#generate-dates)
 * [Start and end of day](#start-and-end-of-day)
 * [Test jsonb query](#test-jsonb-query)
+* [Temp table](#temp-table)
 
 ## Data Type Formatting
 ```
@@ -78,6 +81,22 @@ insert into lesson (id, "name", description, link, created_at, time_seconds, las
 			true
 	from lesson l
 	where l.id = 1;
+```
+
+## Insert in loop
+```sql
+do $$
+begin
+for r in 1..1000 loop
+insert into schema_name.table_name(id) values(r);
+end loop;
+end;
+$$;
+```
+
+## Random from set
+```sql
+select ('{Foo,Bar,Poo}'::text[])[ceil(random()*3)];
 ```
 
 ## Stored procedure
@@ -473,4 +492,43 @@ begin
    raise notice 'Execution time of % iterations in ms = %', _iterations, 1000 * (extract(epoch from _end - _start));
 end;
 $$;
+```
+
+## Temp table
+CTE doesn't work with multiple queries. If you need a temp table for more than one query you can do:
+```
+begin;
+
+create temp table temp_table as (
+  select id
+  from table1
+);
+
+delete from table2
+where id in (select id from temp_table);
+
+insert into table2 (id)
+select id from temp_table;
+
+drop temp_table;
+
+commit;
+```
+Using create temp table with CTE:
+```
+create temp table foo
+as
+with cte1 as (
+  ...
+), cte2 as (
+ ...
+), cte3 as (
+ ...
+), cte4 as (
+ ...
+), cte5 as (
+ ...
+) 
+select *
+from cte5;
 ```
