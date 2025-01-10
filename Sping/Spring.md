@@ -13,6 +13,7 @@
 * [Properties file location](#properties-file-location)
 * [Get pid after it starts](#Get-pid-after-it-starts)
 * [Spring retry](#spring-retry)
+* [Inject properties to class](#inject-properties-to-class)
 
 ## ShedLock
 Spring provides an easy way to implement API for scheduling jobs. It works great until we deploy multiple instances of our application.
@@ -705,3 +706,42 @@ public interface MyService {
     void retryServiceWithCustomization(String sql) throws SQLException;
 }
 ```
+
+## Inject properties to class
+If we need to inject Spring properties to none Spring class we can use static context.
+Create class with properties
+```java
+@Component
+public class DeserializerUtils {
+ 
+   public static String DELIMITER;
+ 
+   public static List<Integer> INDEXES;
+ 
+   private String delimiter;
+ 
+   private List<Integer> indexes;
+ 
+   @Value("${kafka.message.deserializer.delimiter:,}")
+   private void setDelimiter(String delimiter){
+       DeserializerUtils.DELIMITER = delimiter;
+   }
+ 
+   @Value("${kafka.message.deserializer.indexes:-1}")
+   private void setIndexes(List<Integer> indexes){
+       DeserializerUtils.INDEXES = indexes;
+   }
+}
+```
+Use in none Spring class
+```java
+public class SmartStringDeserializer implements Deserializer<String> {
+    
+   @Override
+   public String deserialize(String s, byte[] bytes) {
+       String delimiter = DeserializerUtils.DELIMITER;
+       ...
+```
+
+For Spring Kafka serializer or desirializer we can use `spring.kafka.consumer.properties`
+Properties will be set in method `configure`. See `org.springframework.kafka.support.serializer.DelegatingByTopicDeserializer`
