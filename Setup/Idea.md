@@ -5,6 +5,7 @@
 * [Increase the memory heap of the IDE](#increase-the-memory-heap-of-the-ide)
 * [Disable wild card import](#disable-wild-card-import)
 * [Setting JVM Arguments With Run/Debug Configurations](#setting-jvm-arguments-with-rundebug-configurations)
+* [Reload all dependencies](#reload-all-dependencies)
 
 ### Increase the memory heap of the IDE
 The Java Virtual Machine (JVM) running IntelliJ IDEA allocates some predefined amount of memory. 
@@ -43,3 +44,6 @@ VM Options example
 - Garbage collection – such as -XX:+UseConcMarkSweepGC (enables the concurrent mark-sweep garbage collector) or -XX:+UseParallelGC (enables the parallel garbage collector)
 - Debugging – such as -XX:+HeapDumpOnOutOfMemoryError (heap dump when an OutOfMemoryError occurs) or -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 for remote debugging through JDWP on port 5005.
 - System properties – such as -Djava.version (Java version) or -Dcustom.property=value (defines a custom property with its value).
+
+### Reload all dependencies
+Press Ctrl+Shift+A and type `Reload All .. Projects`
