@@ -159,6 +159,14 @@ docker run -d \
          postgres:13
 ```
 
+Mount local directory to docker image using docker compose
+```
+volumes:
+      - type: bind
+        source: ./logs/my-service
+        target: /docker/logs
+```
+
 ### Network
 You can create custom, user-defined networks, and connect multiple containers to the same network.
 Once connected to a user-defined network, containers can communicate with each other using container IP addresses or container names.
